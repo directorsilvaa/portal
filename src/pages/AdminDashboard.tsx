@@ -20,7 +20,16 @@ import {
   FileText,
   Eye,
   Key,
-  Shield
+  Shield,
+  Search,
+  Filter,
+  Save,
+  X,
+  Calendar,
+  Mail,
+  Phone,
+  UserPlus,
+  AlertCircle
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -45,10 +54,18 @@ export default function AdminDashboard() {
   const [showClassEditor, setShowClassEditor] = useState(false);
   const [editingClass, setEditingClass] = useState<any>(null);
   const [selectedCourseForClass, setSelectedCourseForClass] = useState('');
+  
+  // Search and filter states
+  const [studentSearch, setStudentSearch] = useState('');
+  const [studentFilter, setStudentFilter] = useState('all'); // all, active, inactive
+  
+  // Announcement editing states
+  const [editingAnnouncement, setEditingAnnouncement] = useState<any>(null);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
 
   // Form states
   const [newCourse, setNewCourse] = useState({ name: '', description: '', icon: 'BookOpen' });
-  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '' });
   const [newStudent, setNewStudent] = useState({ 
     name: '', 
     email: '', 
@@ -58,16 +75,48 @@ export default function AdminDashboard() {
     courseAccess: [] as string[]
   });
 
+  // Filter students based on search and filter
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                         student.email.toLowerCase().includes(studentSearch.toLowerCase());
+    
+    const matchesFilter = studentFilter === 'all' || 
+                         (studentFilter === 'active' && student.canAccessClasses) ||
+                         (studentFilter === 'inactive' && !student.canAccessClasses);
+    
+    return matchesSearch && matchesFilter;
+  });
+
   const handleAddCourse = (e: React.FormEvent) => {
     e.preventDefault();
     addCourse(newCourse);
     setNewCourse({ name: '', description: '', icon: 'BookOpen' });
   };
 
-  const handleAddAnnouncement = (e: React.FormEvent) => {
+  const handleAnnouncementSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addAnnouncement(newAnnouncement);
-    setNewAnnouncement({ title: '', content: '' });
+    if (editingAnnouncement) {
+      // In a real app, you'd have an updateAnnouncement function
+      console.log('Update announcement:', editingAnnouncement.id, announcementForm);
+    } else {
+      addAnnouncement(announcementForm);
+    }
+    setAnnouncementForm({ title: '', content: '' });
+    setEditingAnnouncement(null);
+    setShowAnnouncementForm(false);
+  };
+
+  const handleEditAnnouncement = (announcement: any) => {
+    setEditingAnnouncement(announcement);
+    setAnnouncementForm({ title: announcement.title, content: announcement.content });
+    setShowAnnouncementForm(true);
+  };
+
+  const handleDeleteAnnouncement = (announcementId: string) => {
+    if (confirm('Tem certeza que deseja excluir este aviso?')) {
+      // In a real app, you'd have a deleteAnnouncement function
+      console.log('Delete announcement:', announcementId);
+    }
   };
 
   const handleAddStudent = (e: React.FormEvent) => {
@@ -113,12 +162,6 @@ export default function AdminDashboard() {
 
   const toggleStudentAccess = (studentId: string, currentAccess: boolean) => {
     updateStudent(studentId, { canAccessClasses: !currentAccess });
-  };
-
-  const toggleStudentCourseAccess = (studentId: string, courseId: string) => {
-    const student = students.find(s => s.id === studentId);
-    const hasAccess = student?.courseAccess?.includes(courseId) || false;
-    updateStudentCourseAccess(studentId, courseId, !hasAccess);
   };
 
   const handleStudentCourseAccessChange = (studentId: string, courseId: string, checked: boolean) => {
@@ -194,7 +237,7 @@ export default function AdminDashboard() {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
                   <div className="p-3 bg-blue-100 rounded-lg">
                     <BookOpen className="h-8 w-8 text-blue-600" />
@@ -206,7 +249,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
                   <div className="p-3 bg-green-100 rounded-lg">
                     <Video className="h-8 w-8 text-green-600" />
@@ -218,7 +261,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
                   <div className="p-3 bg-purple-100 rounded-lg">
                     <Users className="h-8 w-8 text-purple-600" />
@@ -230,7 +273,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
                   <div className="p-3 bg-orange-100 rounded-lg">
                     <Bell className="h-8 w-8 text-orange-600" />
@@ -257,7 +300,8 @@ export default function AdminDashboard() {
                       value={newCourse.name}
                       onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="Ex: Desenvolvimento Web Completo"
                     />
                   </div>
                   <div>
@@ -267,7 +311,8 @@ export default function AdminDashboard() {
                       onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
                       required
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="Descreva o que o aluno aprenderá neste curso..."
                     />
                   </div>
                   <div>
@@ -275,17 +320,17 @@ export default function AdminDashboard() {
                     <select
                       value={newCourse.icon}
                       onChange={(e) => setNewCourse({ ...newCourse, icon: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     >
-                      <option value="BookOpen">Livro</option>
-                      <option value="Code">Código</option>
-                      <option value="Megaphone">Marketing</option>
-                      <option value="Palette">Design</option>
+                      <option value="BookOpen">📚 Livro</option>
+                      <option value="Code">💻 Código</option>
+                      <option value="Megaphone">📢 Marketing</option>
+                      <option value="Palette">🎨 Design</option>
                     </select>
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                    className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2 font-medium"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Adicionar Curso</span>
@@ -297,11 +342,21 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Cursos Cadastrados</h2>
                 <div className="space-y-4">
                   {courses.map((course) => (
-                    <div key={course.id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <h3 className="font-semibold text-gray-900">{course.name}</h3>
                       <p className="text-gray-600 text-sm mt-1">{course.description}</p>
-                      <div className="mt-3 text-sm text-purple-600">
-                        Aulas: {classes.filter(c => c.courseId === course.id).length}
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-sm text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                          {classes.filter(c => c.courseId === course.id).length} aulas
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -347,7 +402,7 @@ export default function AdminDashboard() {
                   {classes.map((cls) => {
                     const course = courses.find(c => c.id === cls.courseId);
                     return (
-                      <div key={cls.id} className="border border-gray-200 rounded-lg p-4">
+                      <div key={cls.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
@@ -367,10 +422,16 @@ export default function AdminDashboard() {
                             </div>
                             <p className="text-gray-600 text-sm mb-2">{cls.description}</p>
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
-                              <span>Curso: {course?.name}</span>
-                              <span>Criado: {cls.createdAt.toLocaleDateString()}</span>
+                              <span className="flex items-center space-x-1">
+                                <BookOpen className="h-3 w-3" />
+                                <span>{course?.name}</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{cls.createdAt.toLocaleDateString()}</span>
+                              </span>
                               {cls.updatedAt && (
-                                <span>Atualizado: {cls.updatedAt.toLocaleDateString()}</span>
+                                <span className="text-orange-600">Atualizado: {cls.updatedAt.toLocaleDateString()}</span>
                               )}
                             </div>
                           </div>
@@ -411,50 +472,103 @@ export default function AdminDashboard() {
           {activeTab === 'announcements' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Adicionar Novo Aviso</h2>
-                <form onSubmit={handleAddAnnouncement} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Título do Aviso</label>
-                    <input
-                      type="text"
-                      value={newAnnouncement.title}
-                      onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Conteúdo</label>
-                    <textarea
-                      value={newAnnouncement.content}
-                      onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
-                      required
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Adicionar Aviso</span>
-                  </button>
-                </form>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {editingAnnouncement ? 'Editar Aviso' : 'Adicionar Novo Aviso'}
+                  </h2>
+                  {editingAnnouncement && (
+                    <button
+                      onClick={() => {
+                        setEditingAnnouncement(null);
+                        setAnnouncementForm({ title: '', content: '' });
+                        setShowAnnouncementForm(false);
+                      }}
+                      className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                {(showAnnouncementForm || !editingAnnouncement) && (
+                  <form onSubmit={handleAnnouncementSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Título do Aviso</label>
+                      <input
+                        type="text"
+                        value={announcementForm.title}
+                        onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        placeholder="Ex: Nova turma disponível"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Conteúdo</label>
+                      <textarea
+                        value={announcementForm.content}
+                        onChange={(e) => setAnnouncementForm({ ...announcementForm, content: e.target.value })}
+                        required
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        placeholder="Digite o conteúdo do aviso..."
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2 font-medium"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>{editingAnnouncement ? 'Atualizar Aviso' : 'Adicionar Aviso'}</span>
+                    </button>
+                  </form>
+                )}
               </div>
 
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Avisos Publicados</h2>
                 <div className="space-y-4">
                   {announcements.map((announcement) => (
-                    <div key={announcement.id} className="border border-gray-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900">{announcement.title}</h3>
-                      <p className="text-gray-600 text-sm mt-1">{announcement.content}</p>
-                      <p className="text-gray-500 text-xs mt-2">
-                        {announcement.createdAt.toLocaleDateString()}
-                      </p>
+                    <div key={announcement.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">{announcement.title}</h3>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleEditAnnouncement(announcement)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAnnouncement(announcement.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-3">{announcement.content}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-500 text-xs flex items-center space-x-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{announcement.createdAt.toLocaleDateString()}</span>
+                        </p>
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                          Ativo
+                        </span>
+                      </div>
                     </div>
                   ))}
+                  
+                  {announcements.length === 0 && (
+                    <div className="text-center py-12">
+                      <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum aviso publicado</h3>
+                      <p className="text-gray-500">Crie o primeiro aviso para seus alunos</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -465,17 +579,20 @@ export default function AdminDashboard() {
             <div className="space-y-8">
               {/* Add Student Form */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Adicionar Novo Aluno</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <UserPlus className="h-5 w-5" />
+                  <span>Adicionar Novo Aluno</span>
+                </h2>
                 <form onSubmit={handleAddStudent} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
                     <input
                       type="text"
                       value={newStudent.name}
                       onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Nome completo"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="João Silva"
                     />
                   </div>
                   <div>
@@ -485,8 +602,8 @@ export default function AdminDashboard() {
                       value={newStudent.email}
                       onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="email@exemplo.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="joao@email.com"
                     />
                   </div>
                   <div>
@@ -499,25 +616,25 @@ export default function AdminDashboard() {
                       value={newStudent.password}
                       onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Senha para o aluno"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="123456"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Status Inicial</label>
                     <select
                       value={newStudent.canAccessClasses ? 'active' : 'inactive'}
                       onChange={(e) => setNewStudent({ ...newStudent, canAccessClasses: e.target.value === 'active' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     >
-                      <option value="active">Acesso Liberado</option>
-                      <option value="inactive">Acesso Restrito</option>
+                      <option value="active">✅ Acesso Liberado</option>
+                      <option value="inactive">❌ Acesso Restrito</option>
                     </select>
                   </div>
                   <div className="flex items-end">
                     <button
                       type="submit"
-                      className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                      className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2 font-medium"
                     >
                       <Plus className="h-4 w-4" />
                       <span>Adicionar</span>
@@ -528,18 +645,56 @@ export default function AdminDashboard() {
 
               {/* Students Management */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Gerenciar Alunos</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                    <Users className="h-5 w-5" />
+                    <span>Gerenciar Alunos ({filteredStudents.length})</span>
+                  </h2>
+                  
+                  {/* Search and Filter Controls */}
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nome ou email..."
+                        value={studentSearch}
+                        onChange={(e) => setStudentSearch(e.target.value)}
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all w-64"
+                      />
+                    </div>
+                    
+                    <div className="relative">
+                      <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <select
+                        value={studentFilter}
+                        onChange={(e) => setStudentFilter(e.target.value)}
+                        className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white"
+                      >
+                        <option value="all">Todos os alunos</option>
+                        <option value="active">Acesso liberado</option>
+                        <option value="inactive">Acesso restrito</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-6">
-                  {students.map((student) => (
-                    <div key={student.id} className="border border-gray-200 rounded-lg p-6">
+                  {filteredStudents.map((student) => (
+                    <div key={student.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-4">
-                          <div className="p-3 bg-blue-100 rounded-full">
-                            <User className="h-6 w-6 text-blue-600" />
+                          <div className={`p-3 rounded-full ${student.canAccessClasses ? 'bg-green-100' : 'bg-red-100'}`}>
+                            <User className={`h-6 w-6 ${student.canAccessClasses ? 'text-green-600' : 'text-red-600'}`} />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900">{student.name}</h3>
-                            <p className="text-gray-600 text-sm">{student.email}</p>
+                            <h3 className="font-semibold text-gray-900 text-lg">{student.name}</h3>
+                            <div className="flex items-center space-x-4 text-sm text-gray-600">
+                              <span className="flex items-center space-x-1">
+                                <Mail className="h-4 w-4" />
+                                <span>{student.email}</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -553,9 +708,9 @@ export default function AdminDashboard() {
                             title={student.canAccessClasses ? 'Remover acesso geral' : 'Liberar acesso geral'}
                           >
                             {student.canAccessClasses ? (
-                              <CheckCircle className="h-4 w-4" />
+                              <CheckCircle className="h-5 w-5" />
                             ) : (
-                              <XCircle className="h-4 w-4" />
+                              <XCircle className="h-5 w-5" />
                             )}
                           </button>
                           <button
@@ -563,7 +718,7 @@ export default function AdminDashboard() {
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Excluir aluno"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
@@ -574,7 +729,7 @@ export default function AdminDashboard() {
                             ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {student.canAccessClasses ? 'Acesso Liberado' : 'Acesso Restrito'}
+                          {student.canAccessClasses ? '✅ Acesso Liberado' : '❌ Acesso Restrito'}
                         </span>
                       </div>
 
@@ -582,17 +737,18 @@ export default function AdminDashboard() {
                       <div>
                         <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
                           <Shield className="h-4 w-4" />
-                          <span>Acesso por Curso</span>
+                          <span>Controle de Acesso por Curso</span>
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {courses.map((course) => {
                             const hasAccess = student.courseAccess?.includes(course.id) || false;
+                            const courseClassCount = classes.filter(c => c.courseId === course.id).length;
                             return (
                               <label
                                 key={course.id}
-                                className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                                className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-all ${
                                   hasAccess 
-                                    ? 'border-green-300 bg-green-50' 
+                                    ? 'border-green-300 bg-green-50 shadow-sm' 
                                     : 'border-gray-200 hover:bg-gray-50'
                                 }`}
                               >
@@ -600,12 +756,13 @@ export default function AdminDashboard() {
                                   type="checkbox"
                                   checked={hasAccess}
                                   onChange={(e) => handleStudentCourseAccessChange(student.id, course.id, e.target.checked)}
-                                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
                                 />
                                 <div className="flex-1">
                                   <div className="font-medium text-sm text-gray-900">{course.name}</div>
-                                  <div className="text-xs text-gray-500">
-                                    {classes.filter(c => c.courseId === course.id).length} aulas
+                                  <div className="text-xs text-gray-500 flex items-center space-x-2">
+                                    <span>{courseClassCount} aulas</span>
+                                    {hasAccess && <span className="text-green-600">• Liberado</span>}
                                   </div>
                                 </div>
                               </label>
@@ -616,11 +773,21 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                   
-                  {students.length === 0 && (
+                  {filteredStudents.length === 0 && (
                     <div className="text-center py-12">
-                      <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum aluno cadastrado</h3>
-                      <p className="text-gray-500">Adicione o primeiro aluno para começar</p>
+                      {studentSearch || studentFilter !== 'all' ? (
+                        <>
+                          <AlertCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum aluno encontrado</h3>
+                          <p className="text-gray-500">Tente ajustar os filtros de busca</p>
+                        </>
+                      ) : (
+                        <>
+                          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum aluno cadastrado</h3>
+                          <p className="text-gray-500">Adicione o primeiro aluno para começar</p>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

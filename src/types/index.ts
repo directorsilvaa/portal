@@ -13,7 +13,7 @@ export interface Course {
   name: string;
   description: string;
   icon: string;
-  image?: string;
+  image?: string; // URL for course cover image
 }
 
 export interface Class {

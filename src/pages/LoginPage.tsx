@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { GraduationCap, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { 
+  GraduationCap, 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  AlertCircle, 
+  Sparkles,
+  Shield,
+  Users,
+  Award
+} from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +29,6 @@ export default function LoginPage() {
     const success = await login(email, password);
     
     if (success) {
-      // The redirection will be handled by the auth context and protected routes
       navigate('/student');
     } else {
       setError('Email ou senha incorretos');
@@ -26,67 +36,88 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <div className="relative max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 text-white hover:text-blue-100 transition-colors">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg backdrop-blur">
-              <GraduationCap className="h-8 w-8" />
+          <Link to="/" className="inline-flex items-center space-x-3 text-white hover:text-gray-200 transition-colors group">
+            <div className="p-3 bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl border border-white border-opacity-20 group-hover:bg-opacity-30 transition-all duration-300">
+              <GraduationCap className="h-10 w-10" />
             </div>
-            <span className="text-2xl font-bold">Instituto Ágora</span>
+            <div className="text-left">
+              <span className="text-3xl font-bold block">Instituto Ágora</span>
+              <span className="text-sm text-gray-300">Educação Premium</span>
+            </div>
           </Link>
-          <h1 className="text-3xl font-bold text-white mt-6 mb-2">Portal do Aluno</h1>
-          <p className="text-blue-100">Faça login para acessar seus cursos</p>
+          
+          <div className="mt-8">
+            <div className="inline-flex items-center px-4 py-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-full text-sm font-medium mb-4 border border-white border-opacity-20">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Portal do Aluno
+            </div>
+            <h1 className="text-4xl font-bold text-white mb-3">
+              Bem-vindo de volta!
+            </h1>
+            <p className="text-gray-200 text-lg">
+              Acesse sua conta para continuar aprendendo
+            </p>
+          </div>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white border-opacity-20">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                <span className="text-red-700">{error}</span>
+              <div className="bg-red-500 bg-opacity-20 border border-red-400 border-opacity-30 rounded-2xl p-4 flex items-center space-x-3 backdrop-blur-sm">
+                <AlertCircle className="h-5 w-5 text-red-300 flex-shrink-0" />
+                <span className="text-red-200">{error}</span>
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-white mb-3">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-300" />
                 <input
                   type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-12 pr-4 py-4 bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 text-white placeholder-gray-300"
                   placeholder="seu@email.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-white mb-3">
                 Senha
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-300" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-12 pr-14 py-4 bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 text-white placeholder-gray-300"
                   placeholder="Sua senha"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -96,31 +127,53 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
             >
               {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
+                <div className="flex items-center justify-center space-x-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   <span>Entrando...</span>
                 </div>
               ) : (
-                'Entrar'
+                'Entrar na Plataforma'
               )}
             </button>
           </form>
 
+          {/* Features */}
+          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div className="text-white">
+              <Shield className="h-6 w-6 mx-auto mb-2 text-blue-300" />
+              <div className="text-xs font-medium">Seguro</div>
+            </div>
+            <div className="text-white">
+              <Users className="h-6 w-6 mx-auto mb-2 text-purple-300" />
+              <div className="text-xs font-medium">Comunidade</div>
+            </div>
+            <div className="text-white">
+              <Award className="h-6 w-6 mx-auto mb-2 text-pink-300" />
+              <div className="text-xs font-medium">Certificado</div>
+            </div>
+          </div>
+
           {/* Demo Credentials */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-semibold text-gray-800 mb-3">Contas de Demonstração:</h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <strong>Admin:</strong> admin@institutoagora.com | Senha: 123456
+          <div className="mt-8 p-6 bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl border border-white border-opacity-20">
+            <h3 className="font-semibold text-white mb-4 text-center">Contas de Demonstração</h3>
+            <div className="space-y-3 text-sm text-gray-200">
+              <div className="p-3 bg-white bg-opacity-10 rounded-xl">
+                <div className="font-medium text-blue-300">👨‍💼 Admin</div>
+                <div>admin@institutoagora.com</div>
+                <div>Senha: 123456</div>
               </div>
-              <div>
-                <strong>Aluno (com acesso):</strong> joao@email.com | Senha: 123456
+              <div className="p-3 bg-white bg-opacity-10 rounded-xl">
+                <div className="font-medium text-green-300">👨‍🎓 Aluno (com acesso)</div>
+                <div>joao@email.com</div>
+                <div>Senha: 123456</div>
               </div>
-              <div>
-                <strong>Aluno (sem acesso):</strong> maria@email.com | Senha: 123456
+              <div className="p-3 bg-white bg-opacity-10 rounded-xl">
+                <div className="font-medium text-orange-300">👩‍🎓 Aluno (sem acesso)</div>
+                <div>maria@email.com</div>
+                <div>Senha: 123456</div>
               </div>
             </div>
           </div>
@@ -128,7 +181,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <Link 
               to="/" 
-              className="text-blue-600 hover:text-blue-700 transition-colors text-sm"
+              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
             >
               ← Voltar para o site
             </Link>

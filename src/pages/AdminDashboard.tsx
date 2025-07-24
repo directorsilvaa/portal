@@ -210,8 +210,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
       if (editingCourse) {
         // Update course logic would go here
-        console.log("Update course:", editingCourse._id, newCourse);
-        return;
+       
         const response = await axios.put(
           `http://localhost:9001/api/courses/update-course/${editingCourse._id}`,
           newCourse,
@@ -458,8 +457,7 @@ export default function AdminDashboard() {
           toast.error("Erro ao editar Curso.");
         }
       } else {
-        // console.log(newClass, classData);
-        // return;
+       
         const response = await axios.post(
           "http://localhost:9001/api/lessons",
           {

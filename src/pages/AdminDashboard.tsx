@@ -118,7 +118,7 @@ export default function AdminDashboard() {
   const fetchDataStudents = async () => {
     try {
       const token = localStorage.getItem("token"); // Recupera o token do local storage
-      const response = await axios.get("http://localhost:9001/api/auth/all", {
+      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/auth/all", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:9001/api/lessons/all",
+        "https://portal-backend-kvw9.onrender.com/api/lessons/all",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
   const fetchDataCourse = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:9001/api/courses", {
+      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/courses", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
         // Update course logic would go here
        
         const response = await axios.put(
-          `http://localhost:9001/api/courses/update-course/${editingCourse._id}`,
+          `https://portal-backend-kvw9.onrender.com/api/courses/update-course/${editingCourse._id}`,
           newCourse,
           {
             headers: {
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
 
         // Faz a requisição POST com o token no cabeçalho
         const response = await axios.post(
-          "http://localhost:9001/api/courses",
+          "https://portal-backend-kvw9.onrender.com/api/courses",
           newCourse,
           {
             headers: {
@@ -340,7 +340,7 @@ export default function AdminDashboard() {
       if (editingStudent) {
         // updateStudent(editingStudent.id, newStudent);
         const response = await axios.put(
-          `http://localhost:9001/api/auth/aluno-update/${editingStudent._id}`,
+          `https://portal-backend-kvw9.onrender.com/api/auth/aluno-update/${editingStudent._id}`,
           {
             ...newStudent,
             status:
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
         setEditingStudent(null);
       } else {
         const response = await axios.post(
-          "http://localhost:9001/api/auth/register-admin",
+          "https://portal-backend-kvw9.onrender.com/api/auth/register-admin",
           {
             ...newStudent,
             status: newStudent.canAccessClasses ? "active" : "inactive",
@@ -434,7 +434,7 @@ export default function AdminDashboard() {
 
       if (editingClass) {
         const response = await axios.put(
-          `http://localhost:9001/api/lessons/aula-update/${editingClass._id}`,
+          `https://portal-backend-kvw9.onrender.com/api/lessons/aula-update/${editingClass._id}`,
           {
             ...classData,
             course: newClass?.courseId,
@@ -459,7 +459,7 @@ export default function AdminDashboard() {
       } else {
        
         const response = await axios.post(
-          "http://localhost:9001/api/lessons",
+          "https://portal-backend-kvw9.onrender.com/api/lessons",
           {
             ...classData,
             course: newClass?.courseId,
@@ -500,7 +500,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
 
       const response = await axios.delete(
-        `http://localhost:9001/api/auth/delete/${id}`,
+        `https://portal-backend-kvw9.onrender.com/api/auth/delete/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho

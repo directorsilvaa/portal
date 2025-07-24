@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Simulate API call
     try {
       const response = await axios.post(
-        "http://localhost:9001/api/auth/login",
+        "https://portal-backend-kvw9.onrender.com/api/auth/login",
         { email, password }
       );
       // const foundUser = mockUsers.find((u) => u.email === email);
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Simulate API call
     try {
       const response = await axios.post(
-        "http://localhost:9001/api/auth/register",
+        "https://portal-backend-kvw9.onrender.com/api/auth/register",
         { name, email, password, course }
       );
       // const foundUser = mockUsers.find((u) => u.email === email);

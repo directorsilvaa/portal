@@ -37,7 +37,7 @@ export default function LandingPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:9001/api/lessons/all",
+        "https://portal-backend-kvw9.onrender.com/api/lessons/all",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -54,7 +54,7 @@ export default function LandingPage() {
   const fetchDataCourse = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:9001/api/courses", {
+      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/courses", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

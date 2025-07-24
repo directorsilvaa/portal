@@ -36,7 +36,7 @@ export default function RegisterPage() {
   // Função para buscar dados dos cursos
   const fetchDataCourse = async () => {
     try {
-      const response = await axios.get("http://localhost:9001/api/courses", {
+      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/courses", {
         // headers: {
         //   Authorization: `Bearer ${token}`,
         // },

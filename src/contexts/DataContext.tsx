@@ -65,7 +65,7 @@ const initialClasses: Class[] = [
 const initialAnnouncements: Announcement[] = [
   {
     id: '1',
-    title: 'Bem-vindos ao Instituto Ágora!',
+    title: 'Bem-vindos ao Portal da Filosofia!',
     content: 'Estamos felizes em tê-los conosco. Aproveitem ao máximo os cursos!',
     createdAt: new Date(),
   },

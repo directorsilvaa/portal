@@ -1,4 +1,3 @@
-import React from 'react';
 import { GraduationCap, Mail, Phone, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 
 export default function Footer() {
@@ -12,11 +11,11 @@ export default function Footer() {
               <div className="p-2 bg-blue-600 rounded-lg">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold">Instituto Ágora</span>
+              <span className="text-xl font-bold">Portal da Filosofia</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
               Transformando vidas através da educação de qualidade. 
-              Oferecemos cursos online com certificação e suporte completo ao aluno.
+              Oferecemos cursos online e suporte completo ao aluno.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -37,11 +36,11 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-300">contato@institutoagora.com</span>
+                <span className="text-gray-300">contato@portaldafilosfia.com.br</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-blue-400" />
-                <span className="text-gray-300">(11) 99999-9999</span>
+                <span className="text-gray-300">(38) 99992-1124</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4 text-blue-400" />
@@ -71,7 +70,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 Instituto Ágora. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Portal da Filosofia. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

@@ -9,27 +9,56 @@ import {
   AlertCircle,
   Shield,
   Users,
+  User,
+  BookOpen,
 } from "lucide-react";
 import Logo from "../assets/logo.png";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [course, setCourse] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const { login, isLoading } = useAuth();
+  const { register, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Lista de cursos disponíveis
+  const availableCourses = [
+    "Administração",
+    "Ciência da Computação",
+    "Direito",
+    "Enfermagem",
+    "Engenharia Civil",
+    "Engenharia de Software",
+    "Medicina",
+    "Pedagogia",
+    "Psicologia",
+    "Sistemas de Informação",
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const success = await login(email, password);
+    // Validações básicas
+    if (!email || !name || !password || !course) {
+      setError("Todos os campos são obrigatórios");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+
+    const success = await register(email, name, password, course);
 
     if (success) {
       navigate("/student");
     } else {
-      setError("Email ou senha incorretos");
+      setError("Erro ao criar conta. Verifique os dados e tente novamente.");
     }
   };
 
@@ -37,22 +66,22 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
       <div className="relative max-w-md w-full">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center">
           <Link to="/" className="flex items-center space-x-3 group">
             <img src={Logo} alt="logo" className="h-18 w-full text-gray-800" />
           </Link>
 
           <div className="mt-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-3">
-              Bem-vindo de volta!
+              Criar Conta de Aluno
             </h1>
             <p className="text-gray-600 text-lg">
-              Acesse sua conta para continuar aprendendo
+              Preencha os dados para começar sua jornada de aprendizado
             </p>
           </div>
         </div>
 
-        {/* Login Form */}
+        {/* Register Form */}
         <div className="bg-white bg-opacity-90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-gray-200">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -61,6 +90,27 @@ export default function LoginPage() {
                 <span className="text-red-700">{error}</span>
               </div>
             )}
+
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold text-gray-700 mb-3"
+              >
+                Nome Completo
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 placeholder-gray-400"
+                  placeholder="Seu nome completo"
+                />
+              </div>
+            </div>
 
             <div>
               <label
@@ -85,6 +135,32 @@ export default function LoginPage() {
 
             <div>
               <label
+                htmlFor="course"
+                className="block text-sm font-semibold text-gray-700 mb-3"
+              >
+                Curso
+              </label>
+              <div className="relative">
+                <BookOpen className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <select
+                  id="course"
+                  value={course}
+                  onChange={(e) => setCourse(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 appearance-none cursor-pointer"
+                >
+                  <option value="">Selecione seu curso</option>
+                  {availableCourses.map((courseName) => (
+                    <option key={courseName} value={courseName}>
+                      {courseName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
                 htmlFor="password"
                 className="block text-sm font-semibold text-gray-700 mb-3"
               >
@@ -99,7 +175,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full pl-12 pr-14 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 placeholder-gray-400"
-                  placeholder="Sua senha"
+                  placeholder="Mínimo 6 caracteres"
                 />
                 <button
                   type="button"
@@ -118,15 +194,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
+              className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Entrando...</span>
+                  <span>Criando conta...</span>
                 </div>
               ) : (
-                "Entrar na Plataforma"
+                "Criar Conta de Aluno"
               )}
             </button>
           </form>
@@ -134,28 +210,34 @@ export default function LoginPage() {
           {/* Features */}
           <div className="mt-8 grid grid-cols-3 gap-4 text-center">
             <div className="text-gray-700">
-              <Shield className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+              <Shield className="h-6 w-6 mx-auto mb-2 text-green-500" />
               <div className="text-xs font-medium">Seguro</div>
             </div>
             <div className="text-gray-700">
-              <Users className="h-6 w-6 mx-auto mb-2 text-purple-500" />
+              <Users className="h-6 w-6 mx-auto mb-2 text-blue-500" />
               <div className="text-xs font-medium">Comunidade</div>
             </div>
+            <div className="text-gray-700">
+              <BookOpen className="h-6 w-6 mx-auto mb-2 text-purple-500" />
+              <div className="text-xs font-medium">Aprendizado</div>
+            </div>
           </div>
-          <div className="mt-6 text-center">
-            <Link
-              to="/register"
-              className="text-gray-500 hover:text-gray-700 transition-colors text-sm font-medium"
-            >
-              Me Cadastrar
-            </Link>
-          </div>
-          <div className="mt-6 text-center">
+
+          <div className="mt-6 text-center space-y-2">
+            <div>
+              <span className="text-gray-500 text-sm">Já tem uma conta? </span>
+              <Link
+                to="/login"
+                className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+              >
+                Fazer login
+              </Link>
+            </div>
             <Link
               to="/"
-              className="text-gray-500 hover:text-gray-700 transition-colors text-sm font-medium"
+              className="text-gray-500 hover:text-gray-700 transition-colors text-sm font-medium block"
             >
-              Voltar para o site
+              ← Voltar para o site
             </Link>
           </div>
         </div>

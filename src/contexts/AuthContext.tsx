@@ -7,7 +7,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const mockUsers: User[] = [
   {
     id: '1',
-    name: 'Admin Instituto',
+    name: 'Admin Portal da Filosofia',
     email: 'admin@institutoagora.com',
     role: 'admin',
     canAccessClasses: true,

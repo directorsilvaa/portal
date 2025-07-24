@@ -319,7 +319,7 @@ export default function StudentDashboard() {
                   Seu acesso às aulas ainda não foi liberado
                 </p>
                 <a 
-                  href="https://wa.me/5511999999999" 
+                  href="https://wa.me/5538999921124" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-4 rounded-2xl hover:from-green-700 hover:to-emerald-800 transition-all duration-300 inline-flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -356,7 +356,7 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              {user?.canAccessClasses && (
+              {/* {user?.canAccessClasses && (
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
                   <div className="flex items-center space-x-2 mb-2">
                     <Award className="h-5 w-5 text-purple-600" />
@@ -366,7 +366,7 @@ export default function StudentDashboard() {
                     Complete todos os cursos para receber seu certificado premium
                   </p>
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Announcements */}

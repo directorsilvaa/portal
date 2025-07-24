@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -13,30 +13,50 @@ import {
   BookOpen,
 } from "lucide-react";
 import Logo from "../assets/logo.png";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [course, setCourse] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const { register, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Lista de cursos disponíveis
-  const availableCourses = [
-    "Administração",
-    "Ciência da Computação",
-    "Direito",
-    "Enfermagem",
-    "Engenharia Civil",
-    "Engenharia de Software",
-    "Medicina",
-    "Pedagogia",
-    "Psicologia",
-    "Sistemas de Informação",
-  ];
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Função para buscar dados dos cursos
+  const fetchDataCourse = async () => {
+    try {
+      const response = await axios.get("http://localhost:9001/api/courses", {
+        // headers: {
+        //   Authorization: `Bearer ${token}`,
+        // },
+      });
+      setCourses(response.data?.courses); // Armazena os dados dos cursos
+    } catch (error) {
+      console.error("Erro ao buscar cursos:", error);
+    }
+  };
+
+  // useEffect para chamar as funções de busca de dados
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true); // Inicia o carregamento
+      await Promise.all([fetchDataCourse()]);
+      setLoading(false); // Finaliza o carregamento
+    };
+
+    fetchData();
+  }, []); // Executa apenas uma vez quando o componente é montado
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +64,13 @@ export default function RegisterPage() {
 
     // Validações básicas
     if (!email || !name || !password || !course) {
+      toast.error("Todos os campos são obrigatórios");
       setError("Todos os campos são obrigatórios");
       return;
     }
 
     if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
       setError("A senha deve ter pelo menos 6 caracteres");
       return;
     }
@@ -56,8 +78,10 @@ export default function RegisterPage() {
     const success = await register(email, name, password, course);
 
     if (success) {
+      toast.success("Registrado com sucesso.");
       navigate("/student");
     } else {
+      toast.error("Erro ao criar conta. Verifique os dados e tente novamente.");
       setError("Erro ao criar conta. Verifique os dados e tente novamente.");
     }
   };
@@ -132,7 +156,66 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
-
+            <div>
+              <label
+                htmlFor="telefone"
+                className="block text-sm font-semibold text-gray-700 mb-3"
+              >
+                Telefone
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  id="email"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 placeholder-gray-400"
+                  placeholder="(DD) XXXX-XXXX"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="estado"
+                className="block text-sm font-semibold text-gray-700 mb-3"
+              >
+                Estado
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  id="estado"
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 placeholder-gray-400"
+                  placeholder="Estado"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="cidade"
+                className="block text-sm font-semibold text-gray-700 mb-3"
+              >
+                Cidade
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  id="cidade"
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 placeholder-gray-400"
+                  placeholder="Minha Cidade"
+                />
+              </div>
+            </div>
             <div>
               <label
                 htmlFor="course"
@@ -150,9 +233,9 @@ export default function RegisterPage() {
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 appearance-none cursor-pointer"
                 >
                   <option value="">Selecione seu curso</option>
-                  {availableCourses.map((courseName) => (
-                    <option key={courseName} value={courseName}>
-                      {courseName}
+                  {courses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.name}
                     </option>
                   ))}
                 </select>
@@ -194,7 +277,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-3">

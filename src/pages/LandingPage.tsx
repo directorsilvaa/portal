@@ -20,11 +20,61 @@ import {
   TrendingUp,
   Heart,
   Sparkles,
+  Award,
 } from "lucide-react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function LandingPage() {
-  const { courses } = useData();
+  // const { courses } = useData();
 
+  const [classes, setLessons] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Função para buscar dados das lições
+  const fetchDataLesson = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:9001/api/lessons/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLessons(response.data?.lessons); // Armazena os dados das lições
+    } catch (error) {
+      console.error("Erro ao buscar lições:", error);
+    }
+  };
+
+  // Função para buscar dados dos cursos
+  const fetchDataCourse = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:9001/api/courses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCourses(response.data?.courses); // Armazena os dados dos cursos
+    } catch (error) {
+      console.error("Erro ao buscar cursos:", error);
+    }
+  };
+
+  // useEffect para chamar as funções de busca de dados
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true); // Inicia o carregamento
+      await Promise.all([fetchDataLesson(), fetchDataCourse()]);
+      setLoading(false); // Finaliza o carregamento
+    };
+
+    fetchData();
+  }, []); // Executa apenas uma vez quando o componente é montado
   return (
     <div className="min-h-screen">
       <Header isLanding />
@@ -83,10 +133,10 @@ export default function LandingPage() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
+              {/* <div className="grid grid-cols-3 gap-6 pt-8">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-yellow-400">
-                    5000+
+                    100+
                   </div>
                   <div className="text-sm text-gray-300">Alunos Formados</div>
                 </div>
@@ -98,7 +148,7 @@ export default function LandingPage() {
                   <div className="text-3xl font-bold text-blue-400">10+</div>
                   <div className="text-sm text-gray-300">Anos</div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <div className="relative">
@@ -155,7 +205,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-gray-50">
+      {/* <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-4">
@@ -176,7 +226,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* <div className="group text-center p-8 bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+            <div className="group text-center p-8 bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
               <div className="bg-gradient-to-r from-blue-500 to-cyan-500 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Award className="h-8 w-8 text-white" />
               </div>
@@ -184,7 +234,7 @@ export default function LandingPage() {
               <p className="text-gray-600 leading-relaxed">
                 Certificados com validade nacional e reconhecimento no mercado de trabalho
               </p>
-            </div> */}
+            </div>
 
             <div className="group text-center p-8 bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
               <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -225,7 +275,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Courses Section */}
       <section id="cursos" className="py-24 bg-white">
@@ -257,7 +307,7 @@ export default function LandingPage() {
       </section>
 
       {/* Trust Section */}
-      <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+      {/* <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -290,10 +340,10 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
-      <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
+      {/* <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-purple-900/50 to-blue-900/50"></div>
         </div>
@@ -348,7 +398,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
     </div>

@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'student';
+  role: "admin" | "student";
   canAccessClasses: boolean;
   courseAccess: string[]; // Array of course IDs the student can access
   password?: string; // For admin to set initial password
@@ -23,7 +23,7 @@ export interface Class {
   videoUrl?: string;
   videoFile?: File;
   textContent?: string; // HTML content for text-based lessons
-  type: 'video' | 'text'; // Lesson type
+  type: "video" | "text"; // Lesson type
   courseId: string;
   createdAt: Date;
   updatedAt?: Date;
@@ -39,6 +39,12 @@ export interface Announcement {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  register: (
+    email: string,
+    password: string,
+    course: string,
+    name: string
+  ) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }

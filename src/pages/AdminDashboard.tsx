@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useData } from "../contexts/DataContext";
 import Header from "../components/Header";
@@ -39,22 +39,24 @@ import {
   Star,
   Image,
 } from "lucide-react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const {
-    courses,
-    classes,
+    // courses,
+    // classes,
     announcements,
-    students,
-    addCourse,
+    // students,
+    // addCourse,
     addClass,
     updateClass,
     deleteClass,
     addAnnouncement,
     addStudent,
     updateStudent,
-    deleteStudent,
+    // deleteStudent,
     updateStudentCourseAccess,
   } = useData();
 
@@ -101,7 +103,79 @@ export default function AdminDashboard() {
     role: "student" as const,
     canAccessClasses: true,
     courseAccess: [] as string[],
+    telefone: "",
+    estado: "",
+    cidade: "",
   });
+
+  const [students, setStudents] = useState([]);
+  const [classes, setLessons] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Função para buscar dados dos estudantes
+  const fetchDataStudents = async () => {
+    try {
+      const token = localStorage.getItem("token"); // Recupera o token do local storage
+      const response = await axios.get("http://localhost:9001/api/auth/all", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setStudents(response.data?.user); // Armazena os dados dos estudantes
+    } catch (error) {
+      console.error("Erro ao buscar estudantes:", error);
+    }
+  };
+
+  // Função para buscar dados das lições
+  const fetchDataLesson = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:9001/api/lessons/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLessons(response.data?.lessons); // Armazena os dados das lições
+    } catch (error) {
+      console.error("Erro ao buscar lições:", error);
+    }
+  };
+
+  // Função para buscar dados dos cursos
+  const fetchDataCourse = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:9001/api/courses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCourses(response.data?.courses); // Armazena os dados dos cursos
+    } catch (error) {
+      console.error("Erro ao buscar cursos:", error);
+    }
+  };
+
+  // useEffect para chamar as funções de busca de dados
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true); // Inicia o carregamento
+      await Promise.all([
+        fetchDataStudents(),
+        fetchDataLesson(),
+        fetchDataCourse(),
+      ]);
+      setLoading(false); // Finaliza o carregamento
+    };
+
+    fetchData();
+  }, []); // Executa apenas uma vez quando o componente é montado
 
   // Filter functions
   const filteredStudents = students.filter((student) => {
@@ -129,16 +203,62 @@ export default function AdminDashboard() {
   });
 
   // Event handlers
-  const handleAddCourse = (e: React.FormEvent) => {
+  const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingCourse) {
-      // Update course logic would go here
-      console.log("Update course:", editingCourse.id, newCourse);
-      setEditingCourse(null);
-    } else {
-      addCourse(newCourse);
+    try {
+      // Recupera o token do local storage
+      const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
+      if (editingCourse) {
+        // Update course logic would go here
+        console.log("Update course:", editingCourse._id, newCourse);
+        return;
+        const response = await axios.put(
+          `http://localhost:9001/api/courses/update-course/${editingCourse._id}`,
+          newCourse,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Curso editado com sucesso.");
+          fetchDataCourse;
+          await fetchDataCourse();
+          setIsModalOpen(false);
+        } else {
+          toast.error("Erro ao editar Curso.");
+        }
+        setEditingCourse(null);
+      } else {
+        // console.log("oi", newCourse);
+        // return;
+
+        // Faz a requisição POST com o token no cabeçalho
+        const response = await axios.post(
+          "http://localhost:9001/api/courses",
+          newCourse,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Curso criado com sucesso.");
+          fetchDataCourse;
+          await fetchDataCourse();
+          setIsModalOpen(false);
+        } else {
+          toast.error("Erro ao criar Curso.");
+        }
+      }
+    } catch (error) {
+      toast.error("Erro ao criar Curso.");
     }
-    setNewCourse({ name: "", description: "", icon: "BookOpen", image: "" });
+    // setNewCourse({ name: "", description: "", icon: "BookOpen", image: "" });
   };
 
   const handleEditCourse = (course: any) => {
@@ -213,22 +333,84 @@ export default function AdminDashboard() {
     setShowAnnouncementForm(true);
   };
 
-  const handleAddStudent = (e: React.FormEvent) => {
+  const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingStudent) {
-      updateStudent(editingStudent.id, newStudent);
-      setEditingStudent(null);
-    } else {
-      addStudent(newStudent);
+    const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
+
+    try {
+      if (editingStudent) {
+        // updateStudent(editingStudent.id, newStudent);
+        const response = await axios.put(
+          `http://localhost:9001/api/auth/aluno-update/${editingStudent._id}`,
+          {
+            ...newStudent,
+            status:
+              newStudent.canAccessClasses === true ? "active" : "inactive",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Curso criado com sucesso.");
+          fetchDataCourse;
+          await fetchDataStudents();
+          setIsModalOpen(false);
+        } else {
+          toast.error("Erro ao criar Curso.");
+        }
+        setEditingStudent(null);
+      } else {
+        const response = await axios.post(
+          "http://localhost:9001/api/auth/register-admin",
+          {
+            ...newStudent,
+            status: newStudent.canAccessClasses ? "active" : "inactive",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Aluno criado com sucesso.");
+          fetchDataCourse;
+          await fetchDataStudents();
+          setIsModalOpen(false);
+          setEditingStudent(null);
+          setNewStudent({
+            name: "",
+            email: "",
+            password: "",
+            role: "student",
+            canAccessClasses: true,
+            courseAccess: [],
+            telefone: "",
+            cidade: "",
+            estado: "",
+          });
+        } else {
+          toast.error("Erro ao criar Aluno.");
+        }
+        // addStudent(newStudent);
+      }
+    } catch (error) {
+      toast.error("Erro ao criar Aluno.");
     }
-    setNewStudent({
-      name: "",
-      email: "",
-      password: "",
-      role: "student",
-      canAccessClasses: true,
-      courseAccess: [],
-    });
+
+    // setNewStudent({
+    //   name: "",
+    //   email: "",
+    //   password: "",
+    //   role: "student",
+    //   canAccessClasses: true,
+    //   courseAccess: [],
+    // });
   };
 
   const handleEditStudent = (student: any) => {
@@ -240,19 +422,68 @@ export default function AdminDashboard() {
       role: student.role,
       canAccessClasses: student.canAccessClasses,
       courseAccess: student.courseAccess || [],
+      telefone: student.telefone || "",
+      estado: student.estado || "",
+      cidade: student.cidade || "",
     });
     setShowStudentModal(true);
   };
 
-  const handleSaveClass = (classData: any) => {
-    if (editingClass) {
-      updateClass(editingClass.id, classData);
-    } else {
-      addClass({ ...classData, courseId: selectedCourseForClass });
+  const handleSaveClass = async (classData: any) => {
+    try {
+      const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
+
+      if (editingClass) {
+        const response = await axios.put(
+          `http://localhost:9001/api/lessons/aula-update/${editingClass._id}`,
+          {
+            ...classData,
+            course: newClass?.courseId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Aula editada com sucesso.");
+          fetchDataCourse;
+          await fetchDataLesson();
+          setShowClassEditor(false);
+          setEditingClass(null);
+          setSelectedCourseForClass("");
+        } else {
+          toast.error("Erro ao editar Curso.");
+        }
+      } else {
+        // console.log(newClass, classData);
+        // return;
+        const response = await axios.post(
+          "http://localhost:9001/api/lessons",
+          {
+            ...classData,
+            course: newClass?.courseId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Aula criada com sucesso");
+          await fetchDataLesson();
+          setShowClassEditor(false);
+          setEditingClass(null);
+          setSelectedCourseForClass("");
+        }
+      }
+    } catch (error) {
+      toast.error("Erro ao criar Aula");
     }
-    setShowClassEditor(false);
-    setEditingClass(null);
-    setSelectedCourseForClass("");
   };
 
   const handleEditClass = (cls: any) => {
@@ -266,6 +497,31 @@ export default function AdminDashboard() {
     }
   };
 
+  const deleteStudent = async (id: string) => {
+    try {
+      const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
+
+      const response = await axios.delete(
+        `http://localhost:9001/api/auth/delete/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+          },
+        }
+      );
+
+      if (response?.data) {
+        toast.success("Aluno deletado com sucesso.");
+        fetchDataCourse;
+        await fetchDataStudents();
+      } else {
+        toast.error("Erro ao criar Curso.");
+      }
+    } catch (error) {
+      toast.error("Erro ao deletar Aluno.");
+    }
+  };
+
   const tabButtons = [
     { id: "overview", label: "Dashboard", icon: BarChart3 },
     { id: "courses", label: "Cursos", icon: BookOpen },
@@ -273,7 +529,9 @@ export default function AdminDashboard() {
     // { id: "announcements", label: "Avisos", icon: Bell },
     { id: "students", label: "Alunos", icon: Users },
   ];
-
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -349,7 +607,6 @@ export default function AdminDashboard() {
                         Total de Cursos
                       </p>
                       <p className="text-3xl font-bold">{courses.length}</p>
-                      <p className="text-blue-100 text-xs mt-1">+2 este mês</p>
                     </div>
                     <div className="p-3 bg-white bg-opacity-20 rounded-xl">
                       <BookOpen className="h-8 w-8" />
@@ -364,9 +621,6 @@ export default function AdminDashboard() {
                         Total de Aulas
                       </p>
                       <p className="text-3xl font-bold">{classes.length}</p>
-                      <p className="text-green-100 text-xs mt-1">
-                        +5 esta semana
-                      </p>
                     </div>
                     <div className="p-3 bg-white bg-opacity-20 rounded-xl">
                       <Video className="h-8 w-8" />
@@ -381,9 +635,6 @@ export default function AdminDashboard() {
                         Total de Alunos
                       </p>
                       <p className="text-3xl font-bold">{students.length}</p>
-                      <p className="text-purple-100 text-xs mt-1">
-                        +12 este mês
-                      </p>
                     </div>
                     <div className="p-3 bg-white bg-opacity-20 rounded-xl">
                       <Users className="h-8 w-8" />
@@ -450,7 +701,7 @@ export default function AdminDashboard() {
                     </h3>
                     <p className="text-sm text-gray-600">Cadastrar aluno</p>
                   </button>
-
+                  {/* 
                   <button
                     onClick={() => setActiveTab("announcements")}
                     className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border border-orange-200 hover:shadow-lg transition-all duration-300 group"
@@ -460,7 +711,7 @@ export default function AdminDashboard() {
                       Novo Aviso
                     </h3>
                     <p className="text-sm text-gray-600">Publicar aviso</p>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -559,8 +810,9 @@ export default function AdminDashboard() {
                           <div className="flex items-center justify-between mb-4">
                             <span className="text-sm text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full font-medium">
                               {
-                                classes.filter((c) => c.courseId === course.id)
-                                  .length
+                                classes.filter(
+                                  (c) => c.course?._id === course._id
+                                ).length
                               }{" "}
                               aulas
                             </span>
@@ -797,23 +1049,7 @@ export default function AdminDashboard() {
                       >
                         <option value="all">Todos os cursos</option>
                         {courses.map((course) => (
-                          <option key={course.id} value={course.id}>
-                            {course.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* Course Selection for New Class */}
-                      <select
-                        value={selectedCourseForClass}
-                        onChange={(e) =>
-                          setSelectedCourseForClass(e.target.value)
-                        }
-                        className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">Selecione um curso</option>
-                        {courses.map((course) => (
-                          <option key={course.id} value={course.id}>
+                          <option key={course._id} value={course._id}>
                             {course.name}
                           </option>
                         ))}
@@ -833,7 +1069,9 @@ export default function AdminDashboard() {
                 {/* Classes List */}
                 <div className="space-y-4">
                   {filteredClasses.map((cls) => {
-                    const course = courses.find((c) => c.id === cls.courseId);
+                    const course = courses.find(
+                      (c) => c._id === cls.course?._id
+                    );
                     return (
                       <div
                         key={cls.id}
@@ -895,9 +1133,7 @@ export default function AdminDashboard() {
                             <div className="flex items-center space-x-4">
                               <span className="flex items-center space-x-1">
                                 <Calendar className="h-3 w-3" />
-                                <span>
-                                  {cls.createdAt.toLocaleDateString()}
-                                </span>
+                                <span>{cls.createdAt}</span>
                               </span>
                               {cls.updatedAt && (
                                 <span className="text-orange-600 flex items-center space-x-1">
@@ -949,17 +1185,12 @@ export default function AdminDashboard() {
                               </span>
                               <span className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4" />
-                                <span>
-                                  {cls.createdAt.toLocaleDateString()}
-                                </span>
+                                <span>{cls.createdAt}</span>
                               </span>
                               {cls.updatedAt && (
                                 <span className="text-orange-600 flex items-center space-x-1">
                                   <Clock className="h-4 w-4" />
-                                  <span>
-                                    Atualizado:{" "}
-                                    {cls.updatedAt.toLocaleDateString()}
-                                  </span>
+                                  <span>Atualizado: {cls.updatedAt}</span>
                                 </span>
                               )}
                             </div>
@@ -1035,6 +1266,8 @@ export default function AdminDashboard() {
                   )}
 
                   <div className="space-y-6">
+                    {/* Course Selection for New Class */}
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">
                         Título da Aula
@@ -1297,7 +1530,7 @@ export default function AdminDashboard() {
               {/* Modal for Add/Edit Student */}
               {showStudentModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                     <div className="p-6 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
@@ -1331,6 +1564,9 @@ export default function AdminDashboard() {
                                 role: "student",
                                 canAccessClasses: true,
                                 courseAccess: [],
+                                telefone: "",
+                                cidade: "",
+                                estado: "",
                               });
                             }}
                             className="text-purple-600 hover:text-purple-700 text-sm mt-1"
@@ -1342,101 +1578,307 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="p-6">
-                      <form onSubmit={handleAddStudent} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">
-                              Nome Completo
-                            </label>
-                            <input
-                              type="text"
-                              value={newStudent.name}
-                              onChange={(e) =>
-                                setNewStudent({
-                                  ...newStudent,
-                                  name: e.target.value,
-                                })
-                              }
-                              required
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                              placeholder="João Silva"
-                            />
-                          </div>
+                      <form onSubmit={handleAddStudent} className="space-y-8">
+                        {/* Informações Básicas */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                            <User className="h-5 w-5 text-purple-600" />
+                            <span>Informações Básicas</span>
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Nome Completo
+                              </label>
+                              <input
+                                type="text"
+                                value={newStudent.name}
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    name: e.target.value,
+                                  })
+                                }
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="João Silva"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Telefone
+                              </label>
+                              <input
+                                type="text"
+                                value={newStudent.telefone}
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    telefone: e.target.value,
+                                  })
+                                }
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="Telefone"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Cidade
+                              </label>
+                              <input
+                                type="text"
+                                value={newStudent.cidade}
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    cidade: e.target.value,
+                                  })
+                                }
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="Estado"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Estado
+                              </label>
+                              <input
+                                type="text"
+                                value={newStudent.estado}
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    estado: e.target.value,
+                                  })
+                                }
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="Estado"
+                              />
+                            </div>
 
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              value={newStudent.email}
-                              onChange={(e) =>
-                                setNewStudent({
-                                  ...newStudent,
-                                  email: e.target.value,
-                                })
-                              }
-                              required
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                              placeholder="joao@email.com"
-                            />
-                          </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Email
+                              </label>
+                              <input
+                                type="email"
+                                value={newStudent.email}
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    email: e.target.value,
+                                  })
+                                }
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="joao@email.com"
+                              />
+                            </div>
 
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center space-x-1">
-                              <Key className="h-4 w-4" />
-                              <span>
-                                Senha{" "}
-                                {editingStudent
-                                  ? "(deixe vazio para manter)"
-                                  : "Inicial"}
-                              </span>
-                            </label>
-                            <input
-                              type="password"
-                              value={newStudent.password}
-                              onChange={(e) =>
-                                setNewStudent({
-                                  ...newStudent,
-                                  password: e.target.value,
-                                })
-                              }
-                              required={!editingStudent}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                              placeholder="123456"
-                            />
-                          </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center space-x-1">
+                                <Key className="h-4 w-4" />
+                                <span>
+                                  Senha{" "}
+                                  {editingStudent
+                                    ? "(deixe vazio para manter)"
+                                    : "Inicial"}
+                                </span>
+                              </label>
+                              <input
+                                type="password"
+                                value={newStudent.password}
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    password: e.target.value,
+                                  })
+                                }
+                                required={!editingStudent}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                placeholder="123456"
+                              />
+                            </div>
 
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">
-                              Status
-                            </label>
-                            <select
-                              value={
-                                newStudent.canAccessClasses
-                                  ? "active"
-                                  : "inactive"
-                              }
-                              onChange={(e) =>
-                                setNewStudent({
-                                  ...newStudent,
-                                  canAccessClasses: e.target.value === "active",
-                                })
-                              }
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            >
-                              <option value="active">✅ Acesso Liberado</option>
-                              <option value="inactive">
-                                ❌ Acesso Restrito
-                              </option>
-                            </select>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Status Geral
+                              </label>
+                              <select
+                                value={
+                                  newStudent.canAccessClasses
+                                    ? "active"
+                                    : "inactive"
+                                }
+                                onChange={(e) =>
+                                  setNewStudent({
+                                    ...newStudent,
+                                    canAccessClasses:
+                                      e.target.value === "active",
+                                  })
+                                }
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              >
+                                <option value="active">
+                                  ✅ Acesso Liberado
+                                </option>
+                                <option value="inactive">
+                                  ❌ Acesso Restrito
+                                </option>
+                              </select>
+                              <p className="text-xs text-gray-500 mt-1">
+                                O status geral controla se o aluno pode acessar
+                                a plataforma
+                              </p>
+                            </div>
                           </div>
                         </div>
 
+                        {/* Controle de Acesso por Curso */}
+                        <div className="border-t border-gray-200 pt-6">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                            <Shield className="h-5 w-5 text-purple-600" />
+                            <span>Controle de Acesso por Curso</span>
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-6">
+                            Selecione quais cursos este aluno poderá acessar.
+                            Mesmo com acesso liberado, o aluno só poderá ver os
+                            cursos marcados abaixo.
+                          </p>
+
+                          {courses.length > 0 ? (
+                            <div className="space-y-3">
+                              {/* Botões de seleção rápida */}
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setNewStudent({
+                                      ...newStudent,
+                                      courseAccess: courses.map(
+                                        (course) => course._id
+                                      ),
+                                    })
+                                  }
+                                  className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+                                >
+                                  Selecionar Todos
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setNewStudent({
+                                      ...newStudent,
+                                      courseAccess: [],
+                                    })
+                                  }
+                                  className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
+                                >
+                                  Desmarcar Todos
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {courses.map((course) => {
+                                  const hasAccess =
+                                    newStudent.courseAccess?.includes(
+                                      course._id
+                                    ) || false;
+                                  const courseClassCount = classes.filter(
+                                    (c) => c.course?._id === course._id
+                                  ).length;
+
+                                  return (
+                                    <label
+                                      key={course._id}
+                                      className={`flex items-center space-x-3 p-4 border rounded-xl cursor-pointer transition-all ${
+                                        hasAccess
+                                          ? "border-green-300 bg-green-50 shadow-sm"
+                                          : "border-gray-200 hover:bg-gray-50"
+                                      }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={hasAccess}
+                                        onChange={(e) => {
+                                          const courseId = course._id;
+                                          const currentAccess =
+                                            newStudent.courseAccess || [];
+
+                                          if (e.target.checked) {
+                                            setNewStudent({
+                                              ...newStudent,
+                                              courseAccess: [
+                                                ...currentAccess,
+                                                courseId,
+                                              ],
+                                            });
+                                          } else {
+                                            setNewStudent({
+                                              ...newStudent,
+                                              courseAccess:
+                                                currentAccess.filter(
+                                                  (id) => id !== courseId
+                                                ),
+                                            });
+                                          }
+                                        }}
+                                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-5 w-5 flex-shrink-0"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-semibold text-gray-900 text-sm truncate">
+                                          {course.name}
+                                        </div>
+                                        <div className="text-xs text-gray-500 flex items-center space-x-2">
+                                          <span>{courseClassCount} aulas</span>
+                                          {hasAccess && (
+                                            <span className="text-green-600">
+                                              • Liberado
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 bg-gray-50 rounded-xl">
+                              <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                              <p className="text-gray-500 text-sm">
+                                Nenhum curso cadastrado ainda.
+                              </p>
+                              <p className="text-gray-400 text-xs mt-1">
+                                Cadastre cursos primeiro para definir permissões
+                                de acesso.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Botões de Ação */}
                         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200">
                           <button
                             type="button"
-                            onClick={() => setShowStudentModal(false)}
+                            onClick={() => {
+                              setShowStudentModal(false);
+                              setNewStudent({
+                                name: "",
+                                email: "",
+                                password: "",
+                                role: "student",
+                                canAccessClasses: true,
+                                courseAccess: [],
+                                telefone: "",
+                                cidade: "",
+                                estado: "",
+                              });
+                              setEditingStudent(null);
+                            }}
                             className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
                           >
                             <span>Cancelar</span>
@@ -1539,6 +1981,22 @@ export default function AdminDashboard() {
                                     {student.email}
                                   </span>
                                 </span>
+                                <span className="flex items-center space-x-1 text-sm sm:text-base">
+                                  <Phone className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {student.telefone || "Sem Telefone"}
+                                  </span>
+                                </span>
+                                <span className="flex items-center space-x-1 text-sm sm:text-base">
+                                  <Phone className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {`${
+                                      student?.cidade
+                                        ? `${student.cidade}/${student.estado}`
+                                        : "Sem Cidade e Estado"
+                                    }` || "Sem Telefone"}
+                                  </span>
+                                </span>
                                 <span
                                   className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                                     student.canAccessClasses
@@ -1551,6 +2009,44 @@ export default function AdminDashboard() {
                                     : "❌ Restrito"}
                                 </span>
                               </div>
+
+                              {/* Course Access Summary */}
+                              <div className="mt-3">
+                                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                  <Shield className="h-4 w-4" />
+                                  <span>
+                                    Acesso a {student.courseAccess?.length || 0}{" "}
+                                    de {courses.length} cursos
+                                  </span>
+                                </div>
+
+                                {student.courseAccess &&
+                                  student.courseAccess.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                      {student.courseAccess
+                                        .slice(0, 3)
+                                        .map((courseId) => {
+                                          const course = courses.find(
+                                            (c) => c.id === courseId
+                                          );
+                                          return course ? (
+                                            <span
+                                              key={courseId}
+                                              className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md"
+                                            >
+                                              {course.name}
+                                            </span>
+                                          ) : null;
+                                        })}
+                                      {student.courseAccess.length > 3 && (
+                                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-md">
+                                          +{student.courseAccess.length - 3}{" "}
+                                          mais
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                              </div>
                             </div>
                           </div>
 
@@ -1562,7 +2058,7 @@ export default function AdminDashboard() {
                             >
                               <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
-                            <button
+                            {/* <button
                               onClick={() =>
                                 updateStudent(student.id, {
                                   canAccessClasses: !student.canAccessClasses,
@@ -1584,7 +2080,7 @@ export default function AdminDashboard() {
                               ) : (
                                 <XCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                               )}
-                            </button>
+                            </button> */}
                             <button
                               onClick={() => {
                                 if (
@@ -1592,7 +2088,7 @@ export default function AdminDashboard() {
                                     "Tem certeza que deseja excluir este aluno?"
                                   )
                                 ) {
-                                  deleteStudent(student.id);
+                                  deleteStudent(student._id);
                                 }
                               }}
                               className="p-2 sm:p-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
@@ -1600,62 +2096,6 @@ export default function AdminDashboard() {
                             >
                               <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Course Access Section */}
-                      <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                        <div className="border-t border-gray-100 pt-4">
-                          <h4 className="font-semibold text-gray-900 mb-4 flex items-center space-x-2 text-sm sm:text-base">
-                            <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
-                            <span>Controle de Acesso por Curso</span>
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            {courses.map((course) => {
-                              const hasAccess =
-                                student.courseAccess?.includes(course.id) ||
-                                false;
-                              const courseClassCount = classes.filter(
-                                (c) => c.courseId === course.id
-                              ).length;
-                              return (
-                                <label
-                                  key={course.id}
-                                  className={`flex items-center space-x-3 p-3 sm:p-4 border rounded-xl cursor-pointer transition-all ${
-                                    hasAccess
-                                      ? "border-green-300 bg-green-50 shadow-sm"
-                                      : "border-gray-200 hover:bg-gray-50"
-                                  }`}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={hasAccess}
-                                    onChange={(e) =>
-                                      updateStudentCourseAccess(
-                                        student.id,
-                                        course.id,
-                                        e.target.checked
-                                      )
-                                    }
-                                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                                      {course.name}
-                                    </div>
-                                    <div className="text-xs sm:text-sm text-gray-500 flex items-center space-x-2">
-                                      <span>{courseClassCount} aulas</span>
-                                      {hasAccess && (
-                                        <span className="text-green-600">
-                                          • Liberado
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </label>
-                              );
-                            })}
                           </div>
                         </div>
                       </div>
@@ -1707,6 +2147,9 @@ export default function AdminDashboard() {
           classData={editingClass}
           courseId={selectedCourseForClass}
           onSave={handleSaveClass}
+          newClass={newClass}
+          setNewClass={setNewClass}
+          courses={courses}
           onCancel={() => {
             setShowClassEditor(false);
             setEditingClass(null);

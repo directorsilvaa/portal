@@ -1,6 +1,7 @@
 import React from 'react';
 import { Course } from '../types';
 import { Code, Megaphone, Palette, BookOpen, ArrowRight, Clock, Users, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CourseCardProps {
   course: Course;
@@ -67,10 +68,10 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
         </div>
         
-        <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
+        <Link to= "/register" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
           <span>Saiba Mais</span>
           <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-        </button>
+        </Link>
       </div>
     </div>
   );

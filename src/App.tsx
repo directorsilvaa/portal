@@ -7,6 +7,8 @@ import StudentDashboard from "./pages/StudentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPayment";
+import { ToastContainer } from "react-toastify"; // Importa o ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Importa o CSS do Toastify
 
 function App() {
   return (
@@ -35,6 +37,7 @@ function App() {
                 }
               />
             </Routes>
+            <ToastContainer /> {/* Adiciona o ToastContainer aqui */}
           </div>
         </Router>
       </DataProvider>

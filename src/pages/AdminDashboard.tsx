@@ -433,6 +433,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
 
       if (editingClass) {
+        
         const response = await axios.put(
           `https://portal-backend-kvw9.onrender.com/api/lessons/aula-update/${editingClass._id}`,
           {

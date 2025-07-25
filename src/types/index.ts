@@ -43,7 +43,10 @@ export interface AuthContextType {
     email: string,
     password: string,
     course: string,
-    name: string
+    name: string,
+    telefone: string,
+    cidade: string,
+    estado: string
   ) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;

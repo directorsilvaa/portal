@@ -4,42 +4,6 @@ import axios from "axios";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Admin Portal da Filosofia",
-    email: "admin@institutoagora.com",
-    role: "admin",
-    canAccessClasses: true,
-    courseAccess: [],
-  },
-  {
-    id: "2",
-    name: "João Silva",
-    email: "joao@email.com",
-    role: "student",
-    canAccessClasses: true,
-    courseAccess: ["1", "2"],
-  },
-  {
-    id: "3",
-    name: "Maria Santos",
-    email: "maria@email.com",
-    role: "student",
-    canAccessClasses: true,
-    courseAccess: ["3"],
-  },
-  {
-    id: "4",
-    name: "Pedro Costa",
-    email: "pedro@email.com",
-    role: "student",
-    canAccessClasses: false,
-    courseAccess: [],
-  },
-];
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +12,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for stored user session
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(JSON?.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
@@ -67,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response?.data?.user) {
         setUser(response?.data?.user);
         localStorage.setItem("user", JSON.stringify(response?.data?.user));
-        localStorage.setItem("token", (response?.data?.token));
+        localStorage.setItem("token", response?.data?.token);
 
         setIsLoading(false);
         return true;
@@ -87,21 +51,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     name: string,
     password: string,
-    course: string
+    course: string,
+    telefone: string,
+    cidade: string,
+    estado: string
   ): Promise<boolean> => {
     setIsLoading(true);
     // Simulate API call
     try {
       const response = await axios.post(
         "https://portal-backend-kvw9.onrender.com/api/auth/register",
-        { name, email, password, course }
+        { name, email, password, course, telefone, cidade, estado }
       );
       // const foundUser = mockUsers.find((u) => u.email === email);
       // if (foundUser && password === '123456') {
       if (response?.data?.user) {
         setUser(response?.data?.user);
         localStorage.setItem("user", JSON.stringify(response?.data?.user));
-        localStorage.setItem("token", (response?.data?.token));
+        localStorage.setItem("token", response?.data?.token);
         setIsLoading(false);
         return true;
       }

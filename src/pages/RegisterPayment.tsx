@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
   Mail,
@@ -30,17 +30,30 @@ export default function RegisterPage() {
   const { register, isLoading } = useAuth();
   const navigate = useNavigate();
 
+  const [courseId, setCourseId] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get("courseId");
+    setCourseId(id);
+    setCourse(id || ""); // Define course como courseId se existir
+  }, [location]);
+
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Função para buscar dados dos cursos
   const fetchDataCourse = async () => {
     try {
-      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/courses", {
-        // headers: {
-        //   Authorization: `Bearer ${token}`,
-        // },
-      });
+      const response = await axios.get(
+        "https://portal-backend-kvw9.onrender.com/api/courses",
+        {
+          // headers: {
+          //   Authorization: `Bearer ${token}`,
+          // },
+        }
+      );
       setCourses(response.data?.courses); // Armazena os dados dos cursos
     } catch (error) {
       console.error("Erro ao buscar cursos:", error);
@@ -75,7 +88,7 @@ export default function RegisterPage() {
       return;
     }
 
-    const success = await register(email, name, password, course);
+    const success = await register(email, name, password, course, telefone, cidade, estado);
 
     if (success) {
       toast.success("Registrado com sucesso.");
@@ -227,7 +240,7 @@ export default function RegisterPage() {
                 <BookOpen className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <select
                   id="course"
-                  value={course}
+                  value={course || courseId || ""}
                   onChange={(e) => setCourse(e.target.value)}
                   required
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-800 appearance-none cursor-pointer"
@@ -277,7 +290,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
+              className="w-full bg-[#003b5f] text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-3">
@@ -291,7 +304,7 @@ export default function RegisterPage() {
           </form>
 
           {/* Features */}
-          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+          {/* <div className="mt-8 grid grid-cols-3 gap-4 text-center">
             <div className="text-gray-700">
               <Shield className="h-6 w-6 mx-auto mb-2 text-green-500" />
               <div className="text-xs font-medium">Seguro</div>
@@ -304,7 +317,7 @@ export default function RegisterPage() {
               <BookOpen className="h-6 w-6 mx-auto mb-2 text-purple-500" />
               <div className="text-xs font-medium">Aprendizado</div>
             </div>
-          </div>
+          </div> */}
 
           <div className="mt-6 text-center space-y-2">
             <div>

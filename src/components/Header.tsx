@@ -44,7 +44,7 @@ export default function Header({ isLanding = false }: HeaderProps) {
                 </a>
                 <Link
                   to="/login"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="bg-[#003b5f] text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   Entrar na Plataforma
                 </Link>
@@ -92,7 +92,7 @@ export default function Header({ isLanding = false }: HeaderProps) {
               </a>
               <Link
                 to="/login"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-center font-semibold shadow-lg"
+                className="bg-[#003b5f] text-white px-6 py-3 rounded-xl transition-all duration-300 text-center font-semibold shadow-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Entrar na Plataforma

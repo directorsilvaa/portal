@@ -118,7 +118,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
+              className="w-full bg-[#003b5f] text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-xl hover:shadow-2xl"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-3">
@@ -132,7 +132,7 @@ export default function LoginPage() {
           </form>
 
           {/* Features */}
-          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+          {/* <div className="mt-8 grid grid-cols-3 gap-4 text-center">
             <div className="text-gray-700">
               <Shield className="h-6 w-6 mx-auto mb-2 text-blue-500" />
               <div className="text-xs font-medium">Seguro</div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
               <Users className="h-6 w-6 mx-auto mb-2 text-purple-500" />
               <div className="text-xs font-medium">Comunidade</div>
             </div>
-          </div>
+          </div> */}
           <div className="mt-6 text-center">
             <Link
               to="/register"

@@ -354,12 +354,12 @@ export default function AdminDashboard() {
         );
 
         if (response?.data) {
-          toast.success("Curso criado com sucesso.");
+          toast.success("Alino editado com sucesso.");
           fetchDataCourse;
           await fetchDataStudents();
           setIsModalOpen(false);
         } else {
-          toast.error("Erro ao criar Curso.");
+          toast.error("Erro ao editar Aluno.");
         }
         setEditingStudent(null);
       } else {
@@ -537,7 +537,7 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Admin Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 text-white mb-8 relative overflow-hidden">
+        <div className="bg-[#c1aa78] rounded-3xl p-8 text-white mb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <div className="relative flex items-center justify-between">
             <div>
@@ -579,7 +579,7 @@ export default function AdminDashboard() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`py-6 px-4 border-b-2 font-semibold text-sm transition-all duration-200 flex items-center space-x-3 ${
                       activeTab === tab.id
-                        ? "border-purple-500 text-purple-600 bg-purple-50"
+                        ? "border-[#003b5f] text-[#003b5f] bg-purple-50"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
@@ -599,7 +599,7 @@ export default function AdminDashboard() {
             <div className="space-y-8">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                <div className="bg-[#003b5f] rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-blue-100 text-sm font-medium">
@@ -613,7 +613,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                <div className="bg-[#003b5f] rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-green-100 text-sm font-medium">
@@ -627,7 +627,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                <div className="bg-[#003b5f] rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-purple-100 text-sm font-medium">
@@ -641,7 +641,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                {/* <div className="bg-[#003b5f] rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-orange-100 text-sm font-medium">
@@ -658,13 +658,13 @@ export default function AdminDashboard() {
                       <Bell className="h-8 w-8" />
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Quick Actions */}
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-                  <Sparkles className="h-6 w-6 text-purple-600" />
+                  <Sparkles className="h-6 w-6 text-[#003b5f]" />
                   <span>Ações Rápidas</span>
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -731,7 +731,7 @@ export default function AdminDashboard() {
                 </div>
                 <button
                   onClick={openCreateModal}
-                  className="mt-4 sm:mt-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="mt-4 sm:mt-0 bg-[#003b5f] text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <Plus className="h-5 w-5" />
                   <span>Novo Curso</span>
@@ -980,7 +980,7 @@ export default function AdminDashboard() {
                       <button
                         type="submit"
                         onClick={handleAddCourse}
-                        className="w-full sm:flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                        className="w-full sm:flex-1 bg-[#003b5f] text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                       >
                         <Save className="h-5 w-5" />
                         <span>
@@ -1056,7 +1056,7 @@ export default function AdminDashboard() {
 
                       <button
                         onClick={openCreateModalAulas}
-                        className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg hover:shadow-xl"
+                        className="w-full sm:w-auto bg-[#003b5f] text-white px-6 py-2 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg hover:shadow-xl"
                       >
                         <Plus className="h-4 w-4" />
                         <span>Nova Aula</span>
@@ -1884,7 +1884,7 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             type="submit"
-                            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
+                            className="flex-1 bg-[#003b5f] text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
                           >
                             <Save className="h-4 w-4" />
                             <span>
@@ -1909,7 +1909,7 @@ export default function AdminDashboard() {
 
                     <button
                       onClick={() => setShowStudentModal(true)}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
+                      className="bg-[#003b5f] text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
                     >
                       <UserPlus className="h-4 w-4" />
                       <span>Novo Aluno</span>

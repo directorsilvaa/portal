@@ -82,14 +82,14 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section
         id="inicio"
-        className="relative bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white overflow-hidden min-h-screen flex items-center"
+        className="relative bg-[#c1aa78] text-white overflow-hidden min-h-screen flex items-center"
       >
         {/* Animated Background Elements */}
-        <div className="absolute inset-0">
+        {/* <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
           <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
           <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-        </div>
+        </div> */}
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -101,7 +101,7 @@ export default function LandingPage() {
 
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
                 Educação de
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500">
+                <span className="block text-[#003b5f]">
                   Excelência
                 </span>
                 para o Futuro
@@ -115,7 +115,7 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/login"
-                  className="group bg-gradient-to-r from-orange-500 to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-orange-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 shadow-2xl hover:shadow-orange-500/25"
+                  className="group bg-[#003b5f] text-white px-8 py-4 rounded-2xl font-semibold hover:from-orange-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 shadow-2xl hover:shadow-orange-500/25"
                 >
                   <span>Acessar Plataforma</span>
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -164,7 +164,7 @@ export default function LandingPage() {
                 </div> */}
 
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl">
+                  <div className="p-3 bg-[#003b5f] rounded-2xl">
                     <Users className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -176,7 +176,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl">
+                  <div className="p-3 bg-[#003b5f] rounded-2xl">
                     <Zap className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -190,12 +190,12 @@ export default function LandingPage() {
                     <span className="text-sm text-gray-300">
                       Progresso médio dos alunos
                     </span>
-                    <span className="text-sm font-semibold text-green-400">
+                    <span className="text-sm font-semibold text-[#003b5f]">
                       87%
                     </span>
                   </div>
                   <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full w-[87%]"></div>
+                    <div className="bg-[#003b5f] h-2 rounded-full w-[87%]"></div>
                   </div>
                 </div>
               </div>
@@ -281,13 +281,13 @@ export default function LandingPage() {
       <section id="cursos" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center px-4 py-2 bg-[#c1aa78] rounded-full text-sm font-medium mb-4">
               <BookOpen className="h-4 w-4 mr-2" />
               Nossos cursos
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Cursos que
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+              <span className="text-[#003b5f]">
                 {" "}
                 Transformam
               </span>

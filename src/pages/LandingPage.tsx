@@ -185,8 +185,8 @@ export default function LandingPage() {
               <span className="text-[#003b5f]"> Transformam</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Desenvolvidos por especialistas do mercado para impulsionar sua
-              carreira ao próximo nível
+              Desenvolvidos por especialistas para impulsionar sua formação ao
+              nível máximo.
             </p>
           </div>
 

@@ -118,11 +118,14 @@ export default function AdminDashboard() {
   const fetchDataStudents = async () => {
     try {
       const token = localStorage.getItem("token"); // Recupera o token do local storage
-      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/auth/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://portal-backend-kvw9.onrender.com/api/auth/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setStudents(response.data?.user); // Armazena os dados dos estudantes
     } catch (error) {
       console.error("Erro ao buscar estudantes:", error);
@@ -151,11 +154,14 @@ export default function AdminDashboard() {
   const fetchDataCourse = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/courses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://portal-backend-kvw9.onrender.com/api/courses",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setCourses(response.data?.courses); // Armazena os dados dos cursos
     } catch (error) {
       console.error("Erro ao buscar cursos:", error);
@@ -210,7 +216,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
       if (editingCourse) {
         // Update course logic would go here
-       
+
         const response = await axios.put(
           `https://portal-backend-kvw9.onrender.com/api/courses/update-course/${editingCourse._id}`,
           newCourse,
@@ -433,7 +439,6 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
 
       if (editingClass) {
-        
         const response = await axios.put(
           `https://portal-backend-kvw9.onrender.com/api/lessons/aula-update/${editingClass._id}`,
           {
@@ -458,7 +463,6 @@ export default function AdminDashboard() {
           toast.error("Erro ao editar Curso.");
         }
       } else {
-       
         const response = await axios.post(
           "https://portal-backend-kvw9.onrender.com/api/lessons",
           {
@@ -525,7 +529,7 @@ export default function AdminDashboard() {
     { id: "overview", label: "Dashboard", icon: BarChart3 },
     { id: "courses", label: "Cursos", icon: BookOpen },
     { id: "classes", label: "Aulas", icon: Video },
-    // { id: "announcements", label: "Avisos", icon: Bell },
+    { id: "announcements", label: "Avisos", icon: Bell },
     { id: "students", label: "Alunos", icon: Users },
   ];
   if (loading) {
@@ -700,7 +704,7 @@ export default function AdminDashboard() {
                     </h3>
                     <p className="text-sm text-gray-600">Cadastrar aluno</p>
                   </button>
-                  {/* 
+
                   <button
                     onClick={() => setActiveTab("announcements")}
                     className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border border-orange-200 hover:shadow-lg transition-all duration-300 group"
@@ -710,7 +714,7 @@ export default function AdminDashboard() {
                       Novo Aviso
                     </h3>
                     <p className="text-sm text-gray-600">Publicar aviso</p>
-                  </button> */}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1377,8 +1381,8 @@ export default function AdminDashboard() {
                     <Bell className="h-6 w-6 text-orange-600" />
                     <span>
                       {editingAnnouncement
-                        ? "Editar Aviso"
-                        : "Adicionar Novo Aviso"}
+                        ? "Editar Avaliação"
+                        : "Adicionar Nova Avaliação"}
                     </span>
                   </h2>
                   {editingAnnouncement && (
@@ -1398,7 +1402,7 @@ export default function AdminDashboard() {
                 <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Título do Aviso
+                      Título do Avaliação
                     </label>
                     <input
                       type="text"
@@ -1416,7 +1420,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Conteúdo
+                      Descrição
                     </label>
                     <textarea
                       value={announcementForm.content}
@@ -1439,8 +1443,8 @@ export default function AdminDashboard() {
                     <Save className="h-5 w-5" />
                     <span>
                       {editingAnnouncement
-                        ? "Atualizar Aviso"
-                        : "Publicar Aviso"}
+                        ? "Atualizar Avaliação"
+                        : "Publicar Avaliação"}
                     </span>
                   </button>
                 </form>
@@ -1449,7 +1453,7 @@ export default function AdminDashboard() {
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
                   <Bell className="h-6 w-6 text-green-600" />
-                  <span>Avisos Publicados</span>
+                  <span>Avaliações Publicados</span>
                 </h2>
 
                 <div className="space-y-4">

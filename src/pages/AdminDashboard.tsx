@@ -38,27 +38,16 @@ import {
   Clock,
   Star,
   Image,
+  ClipboardList,
+  StarsIcon,
+  AlertTriangle,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
-  const {
-    // courses,
-    // classes,
-    announcements,
-    // students,
-    // addCourse,
-    addClass,
-    updateClass,
-    deleteClass,
-    addAnnouncement,
-    addStudent,
-    updateStudent,
-    // deleteStudent,
-    updateStudentCourseAccess,
-  } = useData();
+  const { deleteClass, addAnnouncement } = useData();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showClassEditor, setShowClassEditor] = useState(false);
@@ -113,6 +102,95 @@ export default function AdminDashboard() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Estados necessários (adicionar no seu componente)
+  const [evaluations, setEvaluations] = useState([
+    // {
+    //   id: 1,
+    //   studentId: 1,
+    //   studentName: "João Silva",
+    //   evaluationDate: "2024-01-15",
+    //   responseDate: "2024-01-20",
+    //   grade: 8.5,
+    //   questions: [
+    //     {
+    //       question: "Como você se sente durante as aulas?",
+    //       answer: "Me sinto muito bem e motivado",
+    //       type: "text",
+    //     },
+    //     {
+    //       question: "Você está satisfeito com seu progresso?",
+    //       answer: "sim",
+    //       type: "yesno",
+    //     },
+    //     {
+    //       question: "Tem dificuldades com os exercícios?",
+    //       answer: "nao",
+    //       type: "yesno",
+    //     },
+    //   ],
+    // },
+    // },
+    // {
+    //   id: 2,
+    //   studentId: 2,
+    //   studentName: "Maria Santos",
+    //   evaluationDate: "2024-01-18",
+    //   responseDate: null,
+    //   grade: null,
+    //   questions: [
+    //     {
+    //       question: "Como você se sente durante as aulas?",
+    //       answer: "",
+    //       type: "text",
+    //     },
+    //     {
+    //       question: "Você gosta dos exercícios propostos?",
+    //       answer: "",
+    //       type: "yesno",
+    //     },
+    //   ],
+    // },
+    // {
+    //   id: 3,
+    //   studentId: 3,
+    //   studentName: "Pedro Costa",
+    //   evaluationDate: "2024-01-20",
+    //   responseDate: "2024-01-22",
+    //   grade: 9.2,
+    //   questions: [
+    //     {
+    //       question: "Qual sua avaliação geral das aulas?",
+    //       answer: "Excelente, muito dinâmicas e motivadoras",
+    //       type: "text",
+    //     },
+    //     {
+    //       question: "Recomendaria nossos serviços?",
+    //       answer: "sim",
+    //       type: "yesno",
+    //     },
+    //   ],
+    // },
+    // {
+    //   id: 4,
+    //   studentId: 4,
+    //   studentName: "Ana Oliveira",
+    //   evaluationDate: "2024-01-25",
+    //   responseDate: "2024-01-28",
+    //   grade: 6.8,
+    //   questions: [
+    //     {
+    //       question: "Como foi sua experiência inicial?",
+    //       answer: "Boa, mas ainda estou me adaptando",
+    //       type: "text",
+    //     },
+    //     {
+    //       question: "Precisa de acompanhamento extra?",
+    //       answer: "sim",
+    //       type: "yesno",
+    //     },
+    //   ],
+    // },
+  ]);
 
   // Função para buscar dados dos estudantes
   const fetchDataStudents = async () => {
@@ -127,6 +205,21 @@ export default function AdminDashboard() {
         }
       );
       setStudents(response.data?.user); // Armazena os dados dos estudantes
+    } catch (error) {
+      console.error("Erro ao buscar estudantes:", error);
+    }
+  };
+
+  // Função para buscar dados dos estudantes
+  const fetchAvaliacoes = async () => {
+    try {
+      const token = localStorage.getItem("token"); // Recupera o token do local storage
+      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/avaliacoes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setEvaluations(response.data?.data || []); // Armazena os dados dos estudantes
     } catch (error) {
       console.error("Erro ao buscar estudantes:", error);
     }
@@ -176,6 +269,7 @@ export default function AdminDashboard() {
         fetchDataStudents(),
         fetchDataLesson(),
         fetchDataCourse(),
+        fetchAvaliacoes(),
       ]);
       setLoading(false); // Finaliza o carregamento
     };
@@ -313,30 +407,6 @@ export default function AdminDashboard() {
     return icons[iconName] || "📚";
   };
 
-  const handleAnnouncementSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingAnnouncement) {
-      console.log(
-        "Update announcement:",
-        editingAnnouncement.id,
-        announcementForm
-      );
-    } else {
-      addAnnouncement(announcementForm);
-    }
-    setAnnouncementForm({ title: "", content: "" });
-    setEditingAnnouncement(null);
-    setShowAnnouncementForm(false);
-  };
-
-  const handleEditAnnouncement = (announcement: any) => {
-    setEditingAnnouncement(announcement);
-    setAnnouncementForm({
-      title: announcement.title,
-      content: announcement.content,
-    });
-    setShowAnnouncementForm(true);
-  };
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -525,11 +595,250 @@ export default function AdminDashboard() {
     }
   };
 
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editingEvaluation, setEditingEvaluation] = useState(null);
+  const [deleteEvaluationId, setDeleteEvaluationId] = useState(null);
+
+  const [evaluationForm, setEvaluationForm] = useState({
+    studentId: "",
+    cursoID: "",
+    evaluationDate: "",
+    responseDate: "",
+    grade: "",
+    questions: [{ question: "", answer: "", type: "text" }],
+  });
+
+  // Função para adicionar nova pergunta ao formulário
+  const addQuestion = () => {
+    setEvaluationForm({
+      ...evaluationForm,
+      questions: [
+        ...evaluationForm.questions,
+        { question: "", answer: "", type: "text" },
+      ],
+    });
+  };
+
+  // Função para remover pergunta do formulário
+  const removeQuestion = (index) => {
+    const newQuestions = evaluationForm.questions.filter((_, i) => i !== index);
+    setEvaluationForm({
+      ...evaluationForm,
+      questions: newQuestions,
+    });
+  };
+
+  // Função para atualizar pergunta específica
+  const updateQuestion = (index, field, value) => {
+    const newQuestions = [...evaluationForm.questions];
+
+    // Se mudou o tipo de pergunta, limpar a resposta
+    if (field === "type") {
+      newQuestions[index] = {
+        ...newQuestions[index],
+        [field]: value,
+        answer: "", // Limpar resposta quando mudar o tipo
+      };
+    } else {
+      newQuestions[index][field] = value;
+    }
+
+    setEvaluationForm({
+      ...evaluationForm,
+      questions: newQuestions,
+    });
+  };
+
+  // Função para lidar com edição de avaliação
+  const handleEditEvaluation = (evaluation) => {
+    setEditingEvaluation(evaluation);
+    setEvaluationForm({
+      studentId: evaluation.studentId.toString(),
+      evaluationDate: evaluation.evaluationDate,
+      responseDate: evaluation.responseDate || "",
+      grade: evaluation.grade ? evaluation.grade.toString() : "",
+      studentName: evaluation?.studentName,
+      cursoID: evaluation?.cursoID,
+      questions:
+        evaluation.questions.length > 0
+          ? evaluation.questions
+          : [{ question: "", answer: "", type: "text" }],
+    });
+    setShowEvaluationModal(true);
+  };
+
+  // Função para lidar com exclusão de avaliação
+  const handleDeleteEvaluation = (evaluationId) => {
+    setDeleteEvaluationId(evaluationId);
+    setShowDeleteModal(true);
+  };
+
+  // Função para confirmar exclusão
+  const confirmDelete = async () => {
+    setEvaluations(
+      evaluations.filter((evaluation) => evaluation.id !== deleteEvaluationId)
+    );
+    setShowDeleteModal(false);
+    setDeleteEvaluationId(null);
+
+    const response = await axios.delete(
+      `https://portal-backend-kvw9.onrender.com/api/avaliacoes/${deleteEvaluationId}`,
+      {
+        headers: {
+          // Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+        },
+      }
+    );
+
+    if (response?.data) {
+      toast.success("Avaliação excluida da com sucesso.");
+      await fetchAvaliacoes();
+    } else {
+      toast.error("Erro ao excluir.");
+    }
+  };
+
+  // Função para lidar com submissão do formulário
+  const handleEvaluationSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validação básica
+    if (!evaluationForm.studentId || !evaluationForm.evaluationDate) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    // Validar nota se preenchida
+    if (
+      evaluationForm.grade &&
+      (parseFloat(evaluationForm.grade) < 0 ||
+        parseFloat(evaluationForm.grade) > 10)
+    ) {
+      alert("A nota deve estar entre 0 e 10.");
+      return;
+    }
+
+    // Verificar se pelo menos uma pergunta foi preenchida
+    const hasValidQuestion = evaluationForm.questions.some(
+      (q) => q.question.trim() !== ""
+    );
+    if (!hasValidQuestion) {
+      alert("Por favor, adicione pelo menos uma pergunta.");
+      return;
+    }
+
+    // Encontrar o nome do estudante
+    const selectedStudent = students.find(
+      (s) => s._id.toString() === evaluationForm.studentId
+    );
+
+    try {
+      if (editingEvaluation) {
+        const newEvaluation = {
+          // id: Date.now(), // Em um app real, isso viria do backend
+          studentId: evaluationForm.studentId,
+          studentName: selectedStudent.name,
+          cursoID: evaluationForm.cursoID,
+          evaluationDate: evaluationForm.evaluationDate,
+          responseDate: evaluationForm.responseDate || null,
+          grade: evaluationForm.grade ? parseFloat(evaluationForm.grade) : null,
+          questions: evaluationForm.questions.filter(
+            (q) => q.question.trim() !== ""
+          ),
+        };
+        // Atualizar avaliação existente
+        const responsePut = await axios.put(
+          `https://portal-backend-kvw9.onrender.com/api/avaliacoes/${editingEvaluation?._id}`,
+          {
+            ...newEvaluation,
+          },
+          {
+            headers: {
+              // Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+        if (responsePut?.data) {
+          toast.success("Nova avaliação atualizada com sucesso!");
+          setShowEvaluationModal(false);
+          setEditingEvaluation(null);
+          setEvaluationForm({
+            studentId: "",
+            evaluationDate: "",
+            responseDate: "",
+            grade: "",
+            cursoID: "",
+            questions: [{ question: "", answer: "", type: "text" }],
+          });
+          await fetchAvaliacoes();
+        }
+        console.log("Avaliação atualizada com sucesso!");
+      } else {
+        // Criar nova avaliação
+        const newEvaluation = {
+          // id: Date.now(), // Em um app real, isso viria do backend
+          studentId: evaluationForm.studentId,
+          studentName: selectedStudent.name,
+          cursoID: evaluationForm.cursoID,
+          evaluationDate: evaluationForm.evaluationDate,
+          responseDate: evaluationForm.responseDate || null,
+          grade: evaluationForm.grade ? parseFloat(evaluationForm.grade) : null,
+          questions: evaluationForm.questions.filter(
+            (q) => q.question.trim() !== ""
+          ),
+        };
+
+        const response = await axios.post(
+          "https://portal-backend-kvw9.onrender.com/api/avaliacoes",
+          {
+            ...newEvaluation,
+          },
+          {
+            headers: {
+              // Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+        if (response?.data) {
+          toast.success("Nova avaliação criada com sucesso!");
+          setShowEvaluationModal(false);
+          setEditingEvaluation(null);
+          setEvaluationForm({
+            studentId: "",
+            evaluationDate: "",
+            responseDate: "",
+            grade: "",
+            cursoID: "",
+            questions: [{ question: "", answer: "", type: "text" }],
+          });
+          await fetchAvaliacoes();
+        }
+      }
+    } catch (error) {
+      toast.error("Erro ao criar Avaliação");
+      // Fechar modal e resetar formulário
+      setShowEvaluationModal(false);
+      setEditingEvaluation(null);
+      setEvaluationForm({
+        studentId: "",
+        evaluationDate: "",
+        responseDate: "",
+        grade: "",
+        cursoID: "",
+        questions: [{ question: "", answer: "", type: "text" }],
+      });
+    }
+  };
+
+  // Imports necessários (adicionar no topo do seu componente)
+  // import { Plus, Edit, Trash2, X, Save, AlertTriangle, ClipboardList } from 'lucide-react';
+
   const tabButtons = [
     { id: "overview", label: "Dashboard", icon: BarChart3 },
     { id: "courses", label: "Cursos", icon: BookOpen },
     { id: "classes", label: "Aulas", icon: Video },
-    { id: "announcements", label: "Avisos", icon: Bell },
+    { id: "announcements", label: "Avaliações", icon: Bell },
     { id: "students", label: "Alunos", icon: Users },
   ];
   if (loading) {
@@ -645,24 +954,21 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* <div className="bg-[#003b5f] rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                <div className="bg-[#003b5f] rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-orange-100 text-sm font-medium">
-                        Avisos Ativos
+                        Todas as Avaliações
                       </p>
                       <p className="text-3xl font-bold">
-                        {announcements.length}
-                      </p>
-                      <p className="text-orange-100 text-xs mt-1">
-                        Todos ativos
+                        {evaluations?.length}
                       </p>
                     </div>
                     <div className="p-3 bg-white bg-opacity-20 rounded-xl">
-                      <Bell className="h-8 w-8" />
+                      <StarsIcon className="h-8 w-8" />
                     </div>
                   </div>
-                </div> */}
+                </div>
               </div>
 
               {/* Quick Actions */}
@@ -711,9 +1017,9 @@ export default function AdminDashboard() {
                   >
                     <Bell className="h-8 w-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform" />
                     <h3 className="font-semibold text-gray-900 mb-1">
-                      Novo Aviso
+                      Nova avaliação
                     </h3>
-                    <p className="text-sm text-gray-600">Publicar aviso</p>
+                    <p className="text-sm text-gray-600">Publicar Avaliação</p>
                   </button>
                 </div>
               </div>
@@ -1372,158 +1678,503 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-          {/* Announcements Tab */}
-          {activeTab === "announcements" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-                    <Bell className="h-6 w-6 text-orange-600" />
-                    <span>
-                      {editingAnnouncement
-                        ? "Editar Avaliação"
-                        : "Adicionar Nova Avaliação"}
-                    </span>
-                  </h2>
-                  {editingAnnouncement && (
-                    <button
-                      onClick={() => {
-                        setEditingAnnouncement(null);
-                        setAnnouncementForm({ title: "", content: "" });
-                        setShowAnnouncementForm(false);
-                      }}
-                      className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
 
-                <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Título do Avaliação
-                    </label>
-                    <input
-                      type="text"
-                      value={announcementForm.title}
-                      onChange={(e) =>
-                        setAnnouncementForm({
-                          ...announcementForm,
-                          title: e.target.value,
-                        })
-                      }
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Ex: Nova turma disponível"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Descrição
-                    </label>
-                    <textarea
-                      value={announcementForm.content}
-                      onChange={(e) =>
-                        setAnnouncementForm({
-                          ...announcementForm,
-                          content: e.target.value,
-                        })
-                      }
-                      required
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Digite o conteúdo do aviso..."
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-4 px-6 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-                  >
-                    <Save className="h-5 w-5" />
-                    <span>
-                      {editingAnnouncement
-                        ? "Atualizar Avaliação"
-                        : "Publicar Avaliação"}
-                    </span>
-                  </button>
-                </form>
+          {activeTab === "announcements" && (
+            <div className="space-y-8">
+              {/* Header com botão para nova avaliação */}
+              <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-gray-900">Avaliações</h1>
+                <button
+                  onClick={() => {
+                    setShowEvaluationModal(true);
+                    setEditingEvaluation(null);
+                    setEvaluationForm({
+                      studentId: "",
+                      evaluationDate: "",
+                      responseDate: "",
+                      grade: "",
+                      cursoID: "",
+                      questions: [{ question: "", answer: "", type: "text" }],
+                    });
+                  }}
+                  className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-6 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Nova Avaliação</span>
+                </button>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-                  <Bell className="h-6 w-6 text-green-600" />
-                  <span>Avaliações Publicados</span>
-                </h2>
+              {/* Lista de Avaliações */}
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Lista de Avaliações
+                  </h2>
+                </div>
 
-                <div className="space-y-4">
-                  {announcements.map((announcement) => (
-                    <div
-                      key={announcement.id}
-                      className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 group"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-bold text-gray-900 text-lg">
-                          {announcement.title}
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEditAnnouncement(announcement)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  "Tem certeza que deseja excluir este aviso?"
-                                )
-                              ) {
-                                console.log(
-                                  "Delete announcement:",
-                                  announcement.id
-                                );
-                              }
-                            }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-gray-600 mb-4">
-                        {announcement.content}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-gray-500 text-sm flex items-center space-x-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>
-                            {announcement.createdAt.toLocaleDateString()}
-                          </span>
-                        </p>
-                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
-                          Ativo
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                          Nome do Aluno
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                          Nota
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                          Data da Avaliação
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                          Data de Resposta
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                          Ações
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {evaluations.map((evaluation) => (
+                        <tr
+                          key={evaluation.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                {evaluation.studentName.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">
+                                  {evaluation.studentName}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              <div
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+                                  evaluation.grade >= 8
+                                    ? "bg-green-100 text-green-800"
+                                    : evaluation.grade >= 6
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : evaluation.grade >= 4
+                                    ? "bg-orange-100 text-orange-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {evaluation.grade
+                                  ? evaluation.grade.toFixed(1)
+                                  : "-"}
+                              </div>
+                              {evaluation.grade && (
+                                <span className="text-xs text-gray-500">
+                                  / 10
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600">
+                            {new Date(
+                              evaluation.evaluationDate
+                            ).toLocaleDateString("pt-BR")}
+                          </td>
+                          <td className="px-6 py-4 text-gray-600">
+                            {evaluation.responseDate
+                              ? new Date(
+                                  evaluation.responseDate
+                                ).toLocaleDateString("pt-BR")
+                              : "-"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                evaluation.responseDate
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
+                              {evaluation.responseDate
+                                ? "Respondida"
+                                : "Pendente"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                              <button
+                                onClick={() => handleEditEvaluation(evaluation)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Editar Avaliação"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteEvaluation(evaluation._id)
+                                }
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Excluir Avaliação"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
 
-                  {announcements.length === 0 && (
+                  {evaluations.length === 0 && (
                     <div className="text-center py-16">
-                      <Bell className="h-20 w-20 text-gray-300 mx-auto mb-4" />
+                      <ClipboardList className="h-20 w-20 text-gray-300 mx-auto mb-4" />
                       <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                        Nenhum aviso publicado
+                        Nenhuma avaliação cadastrada
                       </h3>
                       <p className="text-gray-500">
-                        Crie o primeiro aviso para seus alunos
+                        Crie a primeira avaliação para seus alunos
                       </p>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Modal de Criar/Editar Avaliação */}
+              {showEvaluationModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <div className="p-6 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-2xl font-bold text-gray-900">
+                          {editingEvaluation
+                            ? "Editar Avaliação"
+                            : "Nova Avaliação"}
+                        </h3>
+                        <button
+                          onClick={() => {
+                            setShowEvaluationModal(false);
+                            setEditingEvaluation(null);
+                          }}
+                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <X className="h-6 w-6" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <form
+                      onSubmit={handleEvaluationSubmit}
+                      className="p-6 space-y-6"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                        {/* Seleção do Aluno */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Aluno *
+                          </label>
+                          <select
+                            value={evaluationForm.studentId}
+                            onChange={(e) =>
+                              setEvaluationForm({
+                                ...evaluationForm,
+                                studentId: e.target.value,
+                              })
+                            }
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          >
+                            <option value="">Selecione um aluno</option>
+                            {students.map((student) => (
+                              <option key={student._id} value={student._id}>
+                                {student.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Curso *
+                          </label>
+                          <select
+                            value={evaluationForm.cursoID}
+                            onChange={(e) =>
+                              setEvaluationForm({
+                                ...evaluationForm,
+                                cursoID: e.target.value,
+                              })
+                            }
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          >
+                            <option value="">Selecione um Curso</option>
+                            {courses.map((student) => (
+                              <option key={student._id} value={student._id}>
+                                {student.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Data da Avaliação */}
+                        {/* <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Data da Avaliação *
+                          </label>
+                          <input
+                            type="date"
+                            value={evaluationForm.evaluationDate}
+                            onChange={(e) =>
+                              setEvaluationForm({
+                                ...evaluationForm,
+                                evaluationDate: e.target.value,
+                              })
+                            }
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          />
+                        </div> */}
+
+                        {editingEvaluation && (
+                          <>
+                            {/* Data de Resposta */}
+                            {/* <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Data de Resposta
+                              </label>
+                              <input
+                                type="date"
+                                value={evaluationForm.responseDate}
+                                onChange={(e) =>
+                                  setEvaluationForm({
+                                    ...evaluationForm,
+                                    responseDate: e.target.value,
+                                  })
+                                }
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                              />
+                            </div> */}
+
+                            {/* Nota do Aluno */}
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Nota (0-10)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                step="0.1"
+                                value={evaluationForm.grade}
+                                onChange={(e) =>
+                                  setEvaluationForm({
+                                    ...evaluationForm,
+                                    grade: e.target.value,
+                                  })
+                                }
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                placeholder="Ex: 8.5"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {/* Perguntas Dinâmicas */}
+                        <div>
+                          <div className="flex items-center justify-between mb-4">
+                            <label className="block text-sm font-semibold text-gray-700">
+                              Perguntas da Avaliação *
+                            </label>
+                            <button
+                              type="button"
+                              onClick={addQuestion}
+                              className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                            >
+                              <Plus className="h-4 w-4" />
+                              <span>Adicionar Pergunta</span>
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            {evaluationForm.questions.map((item, index) => (
+                              <div
+                                key={index}
+                                className="border border-gray-200 rounded-xl p-4"
+                              >
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-gray-900">
+                                    Pergunta {index + 1}
+                                  </h4>
+                                  {evaluationForm.questions.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeQuestion(index)}
+                                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Pergunta
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={item.question}
+                                      onChange={(e) =>
+                                        updateQuestion(
+                                          index,
+                                          "question",
+                                          e.target.value
+                                        )
+                                      }
+                                      required
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                      placeholder="Digite a pergunta..."
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Tipo de Resposta
+                                    </label>
+                                    <select
+                                      value={item.type}
+                                      onChange={(e) =>
+                                        updateQuestion(
+                                          index,
+                                          "type",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                    >
+                                      <option value="text">
+                                        Resposta Escrita
+                                      </option>
+                                      <option value="yesno">Sim ou Não</option>
+                                    </select>
+                                  </div>
+
+                                  {editingEvaluation && (
+                                    <>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          Resposta do{" "}
+                                          <span className="text-yellow-700 font-bold">
+                                            Aluno {evaluationForm?.studentName}
+                                          </span>
+                                        </label>
+                                        {item.type === "yesno" ? (
+                                          <select
+                                            value={item.answer}
+                                            onChange={(e) =>
+                                              updateQuestion(
+                                                index,
+                                                "answer",
+                                                e.target.value
+                                              )
+                                            }
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                          >
+                                            <option value="">
+                                              Selecione uma resposta
+                                            </option>
+                                            <option value="sim">Sim</option>
+                                            <option value="nao">Não</option>
+                                          </select>
+                                        ) : (
+                                          <textarea
+                                            value={item.answer}
+                                            onChange={(e) =>
+                                              updateQuestion(
+                                                index,
+                                                "answer",
+                                                e.target.value
+                                              )
+                                            }
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            placeholder="Digite a resposta (opcional)..."
+                                          />
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Botões de Ação */}
+                      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowEvaluationModal(false);
+                            setEditingEvaluation(null);
+                          }}
+                          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-8 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
+                        >
+                          <Save className="h-5 w-5" />
+                          <span>
+                            {editingEvaluation ? "Atualizar" : "Salvar"}{" "}
+                            Avaliação
+                          </span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal de Confirmação de Exclusão */}
+              {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+                    <div className="p-6">
+                      <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                        <AlertTriangle className="h-6 w-6 text-red-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                        Confirmar Exclusão
+                      </h3>
+                      <p className="text-gray-600 text-center mb-6">
+                        Tem certeza que deseja excluir esta avaliação? Esta ação
+                        não pode ser desfeita.
+                      </p>
+                      <div className="flex space-x-4">
+                        <button
+                          onClick={() => setShowDeleteModal(false)}
+                          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={confirmDelete}
+                          className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold"
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

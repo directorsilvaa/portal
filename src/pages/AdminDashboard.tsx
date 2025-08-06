@@ -1097,7 +1097,7 @@ export default function AdminDashboard() {
       s.courseAccess.includes(selectedCourse?._id)
   );
 
-  console.log(courseStudents)
+  console.log(courseStudents);
 
   const courseEvaluations = evaluations?.filter(
     (e) => e.cursoID === selectedCourse?._id
@@ -1293,7 +1293,7 @@ export default function AdminDashboard() {
                     </h3>
                     <p className="text-sm text-gray-600">Publicar Avaliação</p>
                   </button> */}
-                  <button
+                  {/* <button
                     onClick={() => setActiveTab("announcements")}
                     className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border border-orange-200 hover:shadow-lg transition-all duration-300 group"
                   >
@@ -1302,7 +1302,7 @@ export default function AdminDashboard() {
                       Nova avaliação
                     </h3>
                     <p className="text-sm text-gray-600">Publicar Avaliação</p>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>

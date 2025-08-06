@@ -41,13 +41,227 @@ import {
   ClipboardList,
   StarsIcon,
   AlertTriangle,
+  Monitor,
+  Play,
+  Book,
+  Check,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
+// Modal Component
+const AddStudentsModal = ({
+  isOpen,
+  onClose,
+  allStudents,
+  courseStudents,
+  onAddStudents,
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudents, setSelectedStudents] = useState(() => {
+    return new Set(courseStudents.map((student) => student._id));
+  });
 
+  // Filtra os alunos baseado na busca
+  const filteredStudents = allStudents.filter(
+    (student) =>
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Verifica se um aluno já está inscrito no curso
+  const isStudentEnrolled = (studentId) => {
+    return courseStudents.some((student) => student._id === studentId);
+  };
+
+  // Toggle de seleção do aluno
+  const toggleStudentSelection = (studentId) => {
+    if (isStudentEnrolled(studentId)) {
+      return;
+    }
+
+    const newSelection = new Set(selectedStudents);
+    if (newSelection.has(studentId)) {
+      newSelection.delete(studentId);
+    } else {
+      newSelection.add(studentId);
+    }
+    setSelectedStudents(newSelection);
+  };
+
+  // Função para salvar as alterações
+  const handleSave = () => {
+    const newStudentIds = Array.from(selectedStudents).filter(
+      (studentId) => !isStudentEnrolled(studentId)
+    );
+
+    const newStudents = allStudents.filter((student) =>
+      newStudentIds.includes(student._id)
+    );
+
+    onAddStudents(newStudents);
+    onClose();
+    setSearchTerm("");
+  };
+
+  // Conta quantos novos alunos foram selecionados
+  const newStudentsCount = Array.from(selectedStudents).filter(
+    (studentId) => !isStudentEnrolled(studentId)
+  ).length;
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Adicionar Alunos ao Curso
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar alunos por nome ou email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Students List */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-3">
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Nenhum aluno encontrado</p>
+              </div>
+            ) : (
+              filteredStudents.map((student) => {
+                const isEnrolled = isStudentEnrolled(student._id);
+                const isSelected = selectedStudents.has(student._id);
+
+                return (
+                  <div
+                    key={student.id}
+                    className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                      isEnrolled
+                        ? "bg-green-50 border-green-200"
+                        : isSelected
+                        ? "bg-blue-50 border-blue-200"
+                        : "bg-white border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleStudentSelection(student._id)}
+                        disabled={isEnrolled}
+                        className={`h-4 w-4 rounded border-gray-300 ${
+                          isEnrolled
+                            ? "text-green-600 focus:ring-green-500 cursor-not-allowed"
+                            : "text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        }`}
+                      />
+                      {isEnrolled && (
+                        <Check className="absolute -top-1 -right-1 h-3 w-3 text-green-600 bg-white rounded-full" />
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div
+                        className={`p-2 rounded-full ${
+                          isEnrolled ? "bg-green-100" : "bg-blue-100"
+                        }`}
+                      >
+                        <User
+                          className={`h-4 w-4 ${
+                            isEnrolled ? "text-green-600" : "text-blue-600"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`font-medium ${
+                            isEnrolled ? "text-green-900" : "text-gray-900"
+                          }`}
+                        >
+                          {student.name}
+                        </p>
+                        <p
+                          className={`text-sm ${
+                            isEnrolled ? "text-green-600" : "text-gray-500"
+                          }`}
+                        >
+                          {student.email}
+                        </p>
+                      </div>
+
+                      {isEnrolled && (
+                        <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                          Já inscrito
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+          <div className="text-sm text-gray-600">
+            {newStudentsCount > 0 && (
+              <span>
+                {newStudentsCount} novo{newStudentsCount !== 1 ? "s" : ""} aluno
+                {newStudentsCount !== 1 ? "s" : ""} selecionado
+                {newStudentsCount !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={newStudentsCount === 0}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                newStudentsCount > 0
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              Adicionar Alunos ({newStudentsCount})
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
-  const { deleteClass, addAnnouncement } = useData();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showClassEditor, setShowClassEditor] = useState(false);
@@ -97,6 +311,18 @@ export default function AdminDashboard() {
     cidade: "",
   });
 
+  const [isMonitoringOpen, setIsMonitoringOpen] = useState(false);
+  const [monitoringTab, setMonitoringTab] = useState("students");
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [showAddStudentsModal, setShowAddStudentsModal] = useState(false);
+  // Estados para formulários do monitoramento
+  const [newEvaluation, setNewEvaluation] = useState({
+    title: "",
+    questions: "",
+    duration: "",
+    passingScore: "",
+  });
+  const [editingItem, setEditingItem] = useState(null);
   const [students, setStudents] = useState([]);
   const [classes, setLessons] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -214,11 +440,14 @@ export default function AdminDashboard() {
   const fetchAvaliacoes = async () => {
     try {
       const token = localStorage.getItem("token"); // Recupera o token do local storage
-      const response = await axios.get("https://portal-backend-kvw9.onrender.com/api/avaliacoes", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://portal-backend-kvw9.onrender.com/api/avaliacoes",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setEvaluations(response.data?.data || []); // Armazena os dados dos estudantes
     } catch (error) {
       console.error("Erro ao buscar estudantes:", error);
@@ -407,7 +636,6 @@ export default function AdminDashboard() {
     return icons[iconName] || "📚";
   };
 
-
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
@@ -560,13 +788,34 @@ export default function AdminDashboard() {
   };
 
   const handleEditClass = (cls: any) => {
+    setNewClass({
+      ...newClass,
+      courseId: cls?.course?._id,
+    });
     setEditingClass(cls);
     setShowClassEditor(true);
   };
 
-  const handleDeleteClass = (classId: string) => {
+  const handleDeleteClass = async (classId: string) => {
     if (confirm("Tem certeza que deseja excluir esta aula?")) {
-      deleteClass(classId);
+      // deleteClass(classId);
+      const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
+
+      const response = await axios.delete(
+        `https://portal-backend-kvw9.onrender.com/api/lessons/deletar-aula/${classId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+          },
+        }
+      );
+
+      if (response?.data) {
+        toast.success("Aula deletada com sucesso.");
+        await fetchDataLesson();
+      } else {
+        toast.error("Erro ao deletar Aula.");
+      }
     }
   };
 
@@ -585,10 +834,9 @@ export default function AdminDashboard() {
 
       if (response?.data) {
         toast.success("Aluno deletado com sucesso.");
-        fetchDataCourse;
         await fetchDataStudents();
       } else {
-        toast.error("Erro ao criar Curso.");
+        toast.error("Erro ao deletar Aluno.");
       }
     } catch (error) {
       toast.error("Erro ao deletar Aluno.");
@@ -704,8 +952,8 @@ export default function AdminDashboard() {
     e.preventDefault();
 
     // Validação básica
-    if (!evaluationForm.studentId || !evaluationForm.evaluationDate) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
+    if (!evaluationForm.studentId) {
+      toast.error("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
 
@@ -724,7 +972,7 @@ export default function AdminDashboard() {
       (q) => q.question.trim() !== ""
     );
     if (!hasValidQuestion) {
-      alert("Por favor, adicione pelo menos uma pergunta.");
+      toast.warning("Por favor, adicione pelo menos uma pergunta.");
       return;
     }
 
@@ -831,15 +1079,39 @@ export default function AdminDashboard() {
     }
   };
 
-  // Imports necessários (adicionar no topo do seu componente)
-  // import { Plus, Edit, Trash2, X, Save, AlertTriangle, ClipboardList } from 'lucide-react';
+  const openMonitoring = (course) => {
+    setSelectedCourse(course);
+    setIsMonitoringOpen(true);
+    setMonitoringTab("students");
+  };
+  const closeMonitoring = () => {
+    setIsMonitoringOpen(false);
+    setSelectedCourse(null);
+    setEditingItem(null);
+  };
+
+  // Filtros para o curso selecionado
+  const courseStudents = students?.filter(
+    (s) =>
+      Array.isArray(s.courseAccess) &&
+      s.courseAccess.includes(selectedCourse?._id)
+  );
+
+  console.log(courseStudents)
+
+  const courseEvaluations = evaluations?.filter(
+    (e) => e.cursoID === selectedCourse?._id
+  );
+  const courseClassesList = classes?.filter(
+    (c) => c?.course?._id === selectedCourse?._id
+  );
 
   const tabButtons = [
     { id: "overview", label: "Dashboard", icon: BarChart3 },
     { id: "courses", label: "Cursos", icon: BookOpen },
-    { id: "classes", label: "Aulas", icon: Video },
-    { id: "announcements", label: "Avaliações", icon: Bell },
-    { id: "students", label: "Alunos", icon: Users },
+    // { id: "classes", label: "Aulas", icon: Video },
+    // { id: "announcements", label: "Avaliações", icon: Bell },
+    { id: "students", label: "Solicitações Inscrições", icon: Users },
   ];
   if (loading) {
     return <div>Carregando...</div>;
@@ -989,7 +1261,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-gray-600">Adicionar curso</p>
                   </button>
 
-                  <button
+                  {/* <button
                     onClick={() => setActiveTab("classes")}
                     className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-200 hover:shadow-lg transition-all duration-300 group"
                   >
@@ -1011,6 +1283,16 @@ export default function AdminDashboard() {
                     <p className="text-sm text-gray-600">Cadastrar aluno</p>
                   </button>
 
+                  <button
+                    onClick={() => setActiveTab("announcements")}
+                    className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border border-orange-200 hover:shadow-lg transition-all duration-300 group"
+                  >
+                    <Bell className="h-8 w-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform" />
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      Nova avaliação
+                    </h3>
+                    <p className="text-sm text-gray-600">Publicar Avaliação</p>
+                  </button> */}
                   <button
                     onClick={() => setActiveTab("announcements")}
                     className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border border-orange-200 hover:shadow-lg transition-all duration-300 group"
@@ -1129,6 +1411,14 @@ export default function AdminDashboard() {
 
                           {/* Botões de Ação */}
                           <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => openMonitoring(course)}
+                              className="flex-1 bg-green-50 text-green-600 hover:bg-green-100 py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 font-medium"
+                              title="Monitorar"
+                            >
+                              <Monitor className="h-4 w-4" />
+                              <span className="hidden sm:inline">Monitor</span>
+                            </button>
                             <button
                               onClick={() => handleEditCourse(course)}
                               className="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 font-medium"
@@ -1300,6 +1590,372 @@ export default function AdminDashboard() {
                         </span>
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal de Monitoramento */}
+          {isMonitoringOpen && selectedCourse && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+                {/* Header do Modal */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                      <Monitor className="h-6 w-6 text-blue-600" />
+                      <span>Monitoramento - {selectedCourse.name}</span>
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      Gerencie alunos, avaliações e aulas
+                    </p>
+                  </div>
+                  <button
+                    onClick={closeMonitoring}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-6 w-6 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="border-b border-gray-200">
+                  <nav className="flex space-x-8 px-6">
+                    <button
+                      onClick={() => setMonitoringTab("students")}
+                      className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors ${
+                        monitoringTab === "students"
+                          ? "border-blue-500 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Alunos ({courseStudents.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setMonitoringTab("evaluations")}
+                      className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors ${
+                        monitoringTab === "evaluations"
+                          ? "border-blue-500 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <Award className="h-4 w-4" />
+                      <span>Avaliações ({courseEvaluations.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setMonitoringTab("classes")}
+                      className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors ${
+                        monitoringTab === "classes"
+                          ? "border-blue-500 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <Video className="h-4 w-4" />
+                      <span>Aulas ({courseClassesList.length})</span>
+                    </button>
+                  </nav>
+                </div>
+
+                {/* Conteúdo das Tabs */}
+                <div className="p-6">
+                  {/* Tab Alunos */}
+                  {monitoringTab === "students" && (
+                    <div>
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Alunos Inscritos
+                        </h3>
+                        <div className="flex gap-2 mt-4">
+                          <button
+                            onClick={() => setShowAddStudentsModal(true)}
+                            // onClick={editingItem ? updateStudent : addStudent}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span>
+                              {editingItem ? "Atualizar" : "Adicionar Alunos"}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Lista de alunos */}
+                      <div className="space-y-4">
+                        {courseStudents.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                            <p>Nenhum aluno inscrito neste curso</p>
+                          </div>
+                        ) : (
+                          courseStudents.map((student) => (
+                            <div
+                              key={student.id}
+                              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                  <div className="bg-blue-100 p-2 rounded-full">
+                                    <User className="h-5 w-5 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">
+                                      {student.name}
+                                    </h4>
+                                    <p className="text-sm text-gray-500 flex items-center space-x-2">
+                                      <Mail className="h-4 w-4" />
+                                      <span>{student.email}</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400 flex items-center space-x-2 mt-1">
+                                      <Calendar className="h-4 w-4" />
+                                      <span>
+                                        Inscrito em:{" "}
+                                        {new Date(
+                                          student.createdAt
+                                        ).toLocaleDateString("pt-BR")}
+                                      </span>
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => deleteStudent(student.id)}
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                      title="Remover"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab Avaliações */}
+                  {monitoringTab === "evaluations" && (
+                    <div>
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Avaliações do Curso
+                        </h3>
+                        <button
+                          // onClick={
+                          //   editingItem ? updateEvaluation : addEvaluation
+                          // }
+                          onClick={() => {
+                            setShowEvaluationModal(true);
+                            setEditingEvaluation(null);
+                            setEvaluationForm({
+                              studentId: "",
+                              evaluationDate: "",
+                              responseDate: "",
+                              grade: "",
+                              cursoID: selectedCourse?._id,
+                              questions: [
+                                { question: "", answer: "", type: "text" },
+                              ],
+                            });
+                          }}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>{editingItem ? "Atualizar" : "Adicionar"}</span>
+                        </button>
+                      </div>
+
+                      {/* Lista de avaliações */}
+                      <div className="space-y-4">
+                        {courseEvaluations.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <Award className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                            <p>Nenhuma avaliação criada para este curso</p>
+                          </div>
+                        ) : (
+                          courseEvaluations.map((evaluation) => (
+                            <div
+                              key={evaluation._id}
+                              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                  <div className="bg-green-100 p-2 rounded-full">
+                                    <Award className="h-5 w-5 text-green-600" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">
+                                      Aluno: {evaluation.studentName}
+                                    </h4>
+                                    <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                                      <span className="flex items-center space-x-1">
+                                        <FileText className="h-4 w-4" />
+                                        <span>
+                                          {evaluation.questions?.length}{" "}
+                                          questões
+                                        </span>
+                                      </span>
+                                      {/* <span className="flex items-center space-x-1">
+                                        <Clock className="h-4 w-4" />
+                                        <span>{evaluation.duration}</span>
+                                      </span> */}
+                                      <span className="flex items-center space-x-1">
+                                        <Star className="h-4 w-4 text-yellow-400" />
+                                        <span className="font-semibold">
+                                          Nota: {evaluation.grade || "Sem Nota"}
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() =>
+                                      handleEditEvaluation(evaluation)
+                                    }
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="Editar"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteEvaluation(evaluation._id)
+                                    }
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab Aulas */}
+                  {monitoringTab === "classes" && (
+                    <div>
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Aulas do Curso
+                        </h3>
+                        <button
+                          onClick={openCreateModalAulas}
+                          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>{editingItem ? "Atualizar" : "Adicionar"}</span>
+                        </button>
+                      </div>
+
+                      {/* Lista de aulas */}
+                      <div className="space-y-4">
+                        {courseClassesList.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <Video className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                            <p>Nenhuma aula criada para este curso</p>
+                          </div>
+                        ) : (
+                          courseClassesList
+                            .sort((a, b) => a.order - b.order)
+                            .map((classItem, index) => (
+                              <div
+                                key={classItem._id}
+                                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    <div className="bg-purple-100 p-2 rounded-full">
+                                      <Video className="h-5 w-5 text-purple-600" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center space-x-2">
+                                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
+                                          Aula {index + 1}
+                                        </span>
+                                        <h4 className="font-medium text-gray-900">
+                                          {classItem.title}
+                                        </h4>
+                                      </div>
+                                      <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                                        {/* <span className="flex items-center space-x-1">
+                                          <Clock className="h-4 w-4" />
+                                          <span>{classItem.duration}</span>
+                                        </span> */}
+                                        {classItem.videoUrl ? (
+                                          <span className="flex items-center space-x-1">
+                                            <Play className="h-4 w-4" />
+                                            <span>Vídeo disponível</span>
+                                          </span>
+                                        ) : (
+                                          <span className="flex items-center space-x-1">
+                                            <Book className="h-4 w-4" />
+                                            <span>Aula Disponível</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      // onClick={() => editClass(classItem)}
+                                      onClick={() => handleEditClass(classItem)}
+                                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                      title="Editar"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      // onClick={() => deleteClass(classItem.id)}
+                                      onClick={() =>
+                                        handleDeleteClass(classItem._id)
+                                      }
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                      title="Excluir"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer do Modal */}
+                <div className="border-t border-gray-200 p-6 bg-gray-50">
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <div className="flex space-x-6">
+                      <span className="flex items-center space-x-2">
+                        <Users className="h-4 w-4" />
+                        <span>{courseStudents.length} alunos</span>
+                      </span>
+                      <span className="flex items-center space-x-2">
+                        <Award className="h-4 w-4" />
+                        <span>{courseEvaluations.length} avaliações</span>
+                      </span>
+                      <span className="flex items-center space-x-2">
+                        <Video className="h-4 w-4" />
+                        <span>{courseClassesList.length} aulas</span>
+                      </span>
+                    </div>
+                    <button
+                      onClick={closeMonitoring}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Fechar
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1841,86 +2497,88 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Modal de Criar/Editar Avaliação */}
-              {showEvaluationModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <div className="p-6 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-bold text-gray-900">
-                          {editingEvaluation
-                            ? "Editar Avaliação"
-                            : "Nova Avaliação"}
-                        </h3>
-                        <button
-                          onClick={() => {
-                            setShowEvaluationModal(false);
-                            setEditingEvaluation(null);
-                          }}
-                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <X className="h-6 w-6" />
-                        </button>
-                      </div>
+          {/* Modal de Criar/Editar Avaliação */}
+          {showEvaluationModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {editingEvaluation
+                        ? "Editar Avaliação"
+                        : "Nova Avaliação"}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowEvaluationModal(false);
+                        setEditingEvaluation(null);
+                      }}
+                      className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={handleEvaluationSubmit}
+                  className="p-6 space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                    {/* Seleção do Aluno */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Aluno *
+                      </label>
+                      <select
+                        value={evaluationForm.studentId}
+                        onChange={(e) =>
+                          setEvaluationForm({
+                            ...evaluationForm,
+                            studentId: e.target.value,
+                          })
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      >
+                        <option value="">Selecione um aluno</option>
+                        {students.map((student) => (
+                          <option key={student._id} value={student._id}>
+                            {student.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    <form
-                      onSubmit={handleEvaluationSubmit}
-                      className="p-6 space-y-6"
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                        {/* Seleção do Aluno */}
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-3">
-                            Aluno *
-                          </label>
-                          <select
-                            value={evaluationForm.studentId}
-                            onChange={(e) =>
-                              setEvaluationForm({
-                                ...evaluationForm,
-                                studentId: e.target.value,
-                              })
-                            }
-                            required
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                          >
-                            <option value="">Selecione um aluno</option>
-                            {students.map((student) => (
-                              <option key={student._id} value={student._id}>
-                                {student.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Curso *
+                      </label>
+                      <select
+                        value={evaluationForm.cursoID}
+                        onChange={(e) =>
+                          setEvaluationForm({
+                            ...evaluationForm,
+                            cursoID: e.target.value,
+                          })
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      >
+                        <option value="">Selecione um Curso</option>
+                        {courses.map((student) => (
+                          <option key={student._id} value={student._id}>
+                            {student.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-3">
-                            Curso *
-                          </label>
-                          <select
-                            value={evaluationForm.cursoID}
-                            onChange={(e) =>
-                              setEvaluationForm({
-                                ...evaluationForm,
-                                cursoID: e.target.value,
-                              })
-                            }
-                            required
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                          >
-                            <option value="">Selecione um Curso</option>
-                            {courses.map((student) => (
-                              <option key={student._id} value={student._id}>
-                                {student.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Data da Avaliação */}
-                        {/* <div>
+                    {/* Data da Avaliação */}
+                    {/* <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-3">
                             Data da Avaliação *
                           </label>
@@ -1938,10 +2596,10 @@ export default function AdminDashboard() {
                           />
                         </div> */}
 
-                        {editingEvaluation && (
-                          <>
-                            {/* Data de Resposta */}
-                            {/* <div>
+                    {editingEvaluation && (
+                      <>
+                        {/* Data de Resposta */}
+                        {/* <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-3">
                                 Data de Resposta
                               </label>
@@ -1958,223 +2616,218 @@ export default function AdminDashboard() {
                               />
                             </div> */}
 
-                            {/* Nota do Aluno */}
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                                Nota (0-10)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="10"
-                                step="0.1"
-                                value={evaluationForm.grade}
-                                onChange={(e) =>
-                                  setEvaluationForm({
-                                    ...evaluationForm,
-                                    grade: e.target.value,
-                                  })
-                                }
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                placeholder="Ex: 8.5"
-                              />
-                            </div>
-                          </>
-                        )}
-
-                        {/* Perguntas Dinâmicas */}
+                        {/* Nota do Aluno */}
                         <div>
-                          <div className="flex items-center justify-between mb-4">
-                            <label className="block text-sm font-semibold text-gray-700">
-                              Perguntas da Avaliação *
-                            </label>
-                            <button
-                              type="button"
-                              onClick={addQuestion}
-                              className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-                            >
-                              <Plus className="h-4 w-4" />
-                              <span>Adicionar Pergunta</span>
-                            </button>
-                          </div>
-
-                          <div className="space-y-4">
-                            {evaluationForm.questions.map((item, index) => (
-                              <div
-                                key={index}
-                                className="border border-gray-200 rounded-xl p-4"
-                              >
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-semibold text-gray-900">
-                                    Pergunta {index + 1}
-                                  </h4>
-                                  {evaluationForm.questions.length > 1 && (
-                                    <button
-                                      type="button"
-                                      onClick={() => removeQuestion(index)}
-                                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </button>
-                                  )}
-                                </div>
-
-                                <div className="space-y-3">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Pergunta
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={item.question}
-                                      onChange={(e) =>
-                                        updateQuestion(
-                                          index,
-                                          "question",
-                                          e.target.value
-                                        )
-                                      }
-                                      required
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                      placeholder="Digite a pergunta..."
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Tipo de Resposta
-                                    </label>
-                                    <select
-                                      value={item.type}
-                                      onChange={(e) =>
-                                        updateQuestion(
-                                          index,
-                                          "type",
-                                          e.target.value
-                                        )
-                                      }
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                    >
-                                      <option value="text">
-                                        Resposta Escrita
-                                      </option>
-                                      <option value="yesno">Sim ou Não</option>
-                                    </select>
-                                  </div>
-
-                                  {editingEvaluation && (
-                                    <>
-                                      <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                          Resposta do{" "}
-                                          <span className="text-yellow-700 font-bold">
-                                            Aluno {evaluationForm?.studentName}
-                                          </span>
-                                        </label>
-                                        {item.type === "yesno" ? (
-                                          <select
-                                            value={item.answer}
-                                            onChange={(e) =>
-                                              updateQuestion(
-                                                index,
-                                                "answer",
-                                                e.target.value
-                                              )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                          >
-                                            <option value="">
-                                              Selecione uma resposta
-                                            </option>
-                                            <option value="sim">Sim</option>
-                                            <option value="nao">Não</option>
-                                          </select>
-                                        ) : (
-                                          <textarea
-                                            value={item.answer}
-                                            onChange={(e) =>
-                                              updateQuestion(
-                                                index,
-                                                "answer",
-                                                e.target.value
-                                              )
-                                            }
-                                            rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                            placeholder="Digite a resposta (opcional)..."
-                                          />
-                                        )}
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Nota (0-10)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            value={evaluationForm.grade}
+                            onChange={(e) =>
+                              setEvaluationForm({
+                                ...evaluationForm,
+                                grade: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            placeholder="Ex: 8.5"
+                          />
                         </div>
-                      </div>
+                      </>
+                    )}
 
-                      {/* Botões de Ação */}
-                      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    {/* Perguntas Dinâmicas */}
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          Perguntas da Avaliação *
+                        </label>
                         <button
                           type="button"
-                          onClick={() => {
-                            setShowEvaluationModal(false);
-                            setEditingEvaluation(null);
-                          }}
-                          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+                          onClick={addQuestion}
+                          className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                         >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-8 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
-                        >
-                          <Save className="h-5 w-5" />
-                          <span>
-                            {editingEvaluation ? "Atualizar" : "Salvar"}{" "}
-                            Avaliação
-                          </span>
+                          <Plus className="h-4 w-4" />
+                          <span>Adicionar Pergunta</span>
                         </button>
                       </div>
-                    </form>
-                  </div>
-                </div>
-              )}
 
-              {/* Modal de Confirmação de Exclusão */}
-              {showDeleteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-                    <div className="p-6">
-                      <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-                        <AlertTriangle className="h-6 w-6 text-red-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-                        Confirmar Exclusão
-                      </h3>
-                      <p className="text-gray-600 text-center mb-6">
-                        Tem certeza que deseja excluir esta avaliação? Esta ação
-                        não pode ser desfeita.
-                      </p>
-                      <div className="flex space-x-4">
-                        <button
-                          onClick={() => setShowDeleteModal(false)}
-                          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={confirmDelete}
-                          className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold"
-                        >
-                          Excluir
-                        </button>
+                      <div className="space-y-4">
+                        {evaluationForm.questions.map((item, index) => (
+                          <div
+                            key={index}
+                            className="border border-gray-200 rounded-xl p-4"
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-semibold text-gray-900">
+                                Pergunta {index + 1}
+                              </h4>
+                              {evaluationForm.questions.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeQuestion(index)}
+                                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Pergunta
+                                </label>
+                                <input
+                                  type="text"
+                                  value={item.question}
+                                  onChange={(e) =>
+                                    updateQuestion(
+                                      index,
+                                      "question",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                  placeholder="Digite a pergunta..."
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Tipo de Resposta
+                                </label>
+                                <select
+                                  value={item.type}
+                                  onChange={(e) =>
+                                    updateQuestion(
+                                      index,
+                                      "type",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                >
+                                  <option value="text">Resposta Escrita</option>
+                                  <option value="yesno">Sim ou Não</option>
+                                </select>
+                              </div>
+
+                              {editingEvaluation && (
+                                <>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Resposta do{" "}
+                                      <span className="text-yellow-700 font-bold">
+                                        Aluno {evaluationForm?.studentName}
+                                      </span>
+                                    </label>
+                                    {item.type === "yesno" ? (
+                                      <select
+                                        value={item.answer}
+                                        onChange={(e) =>
+                                          updateQuestion(
+                                            index,
+                                            "answer",
+                                            e.target.value
+                                          )
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                      >
+                                        <option value="">
+                                          Selecione uma resposta
+                                        </option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                      </select>
+                                    ) : (
+                                      <textarea
+                                        value={item.answer}
+                                        onChange={(e) =>
+                                          updateQuestion(
+                                            index,
+                                            "answer",
+                                            e.target.value
+                                          )
+                                        }
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                        placeholder="Digite a resposta (opcional)..."
+                                      />
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
+
+                  {/* Botões de Ação */}
+                  <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEvaluationModal(false);
+                        setEditingEvaluation(null);
+                      }}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-8 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
+                    >
+                      <Save className="h-5 w-5" />
+                      <span>
+                        {editingEvaluation ? "Atualizar" : "Salvar"} Avaliação
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Modal de Confirmação de Exclusão */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+                <div className="p-6">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                    Confirmar Exclusão
+                  </h3>
+                  <p className="text-gray-600 text-center mb-6">
+                    Tem certeza que deseja excluir esta avaliação? Esta ação não
+                    pode ser desfeita.
+                  </p>
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={confirmDelete}
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold"
+                    >
+                      Excluir
+                    </button>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -2811,6 +3464,14 @@ export default function AdminDashboard() {
           }}
         />
       )}
+      {/* Modal de Adicionar Alunos */}
+      <AddStudentsModal
+        isOpen={showAddStudentsModal}
+        onClose={() => setShowAddStudentsModal(false)}
+        allStudents={students}
+        courseStudents={courseStudents}
+        onAddStudents={handleAddStudent}
+      />
     </div>
   );
 }

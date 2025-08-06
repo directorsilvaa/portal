@@ -222,6 +222,10 @@ export default function StudentDashboard() {
     fetchData();
   }, []); // Executa apenas uma vez quando o componente é montado
 
+  const filteredEvaluations = studentEvaluations?.filter(
+    (evaluation) => evaluation.cursoID === selectedCourse?._id
+  );
+
   // Filter classes based on user's course access
   const userClasses = classes.filter((cls) => {
     const course = courses.find((c) => c._id === cls.course?._id);
@@ -334,8 +338,8 @@ export default function StudentDashboard() {
       }
     } catch (error) {
       console.log(error);
-      
-      toast.error("Erro ao responder avaliação")
+
+      toast.error("Erro ao responder avaliação");
     }
     // // Atualizar no estado
     // setStudentEvaluations(
@@ -367,7 +371,7 @@ export default function StudentDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-8 text-white mb-8 relative overflow-hidden">
+        <div className="bg-[#c1aa78] rounded-3xl p-8 text-white mb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <div className="relative flex items-center justify-between">
             <div>
@@ -708,112 +712,118 @@ export default function StudentDashboard() {
             </div>
 
             {/* Avaliações */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <StarsIcon className="h-6 w-6 text-orange-600" />
-                <h2 className="text-xl font-bold text-gray-900">Avaliações</h2>
-              </div>
+            {selectedCourse && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <StarsIcon className="h-6 w-6 text-orange-600" />
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Avaliações
+                  </h2>
+                </div>
 
-              {studentEvaluations?.length > 0 ? (
-                <div className="space-y-4">
-                  {studentEvaluations.map((evaluation) => (
-                    <div
-                      key={evaluation._id}
-                      className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-bold text-gray-900 text-sm">
-                              Avaliação #{evaluation._id}
-                            </h3>
-                            {evaluation.grade && (
-                              <div
-                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
-                                  evaluation.grade >= 8
-                                    ? "bg-green-100 text-green-800"
-                                    : evaluation.grade >= 6
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : evaluation.grade >= 4
-                                    ? "bg-orange-100 text-orange-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {evaluation.grade.toFixed(1)}/10
-                              </div>
-                            )}
-                          </div>
+                {filteredEvaluations?.length > 0 ? (
+                  <div className="space-y-4">
+                    {filteredEvaluations.map((evaluation) => (
+                      <div
+                        key={evaluation._id}
+                        className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="font-bold text-gray-900 text-sm">
+                                Avaliação #{evaluation._id}
+                              </h3>
+                              {evaluation.grade && (
+                                <div
+                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
+                                    evaluation.grade >= 8
+                                      ? "bg-green-100 text-green-800"
+                                      : evaluation.grade >= 6
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : evaluation.grade >= 4
+                                      ? "bg-orange-100 text-orange-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {evaluation.grade.toFixed(1)}/10
+                                </div>
+                              )}
+                            </div>
 
-                          <div className="space-y-1">
-                            <p className="text-xs text-gray-500 flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>
-                                Criada em:{" "}
-                                {new Date(
-                                  evaluation.createdAt
-                                ).toLocaleDateString("pt-BR")}
-                              </span>
-                            </p>
-                            {evaluation.responseDate && (
+                            <div className="space-y-1">
                               <p className="text-xs text-gray-500 flex items-center space-x-1">
-                                <CheckCircle className="h-3 w-3 text-green-600" />
+                                <Calendar className="h-3 w-3" />
                                 <span>
-                                  Respondida em:{" "}
+                                  Criada em:{" "}
                                   {new Date(
-                                    evaluation.responseDate
+                                    evaluation.createdAt
                                   ).toLocaleDateString("pt-BR")}
                                 </span>
                               </p>
-                            )}
+                              {evaluation.responseDate && (
+                                <p className="text-xs text-gray-500 flex items-center space-x-1">
+                                  <CheckCircle className="h-3 w-3 text-green-600" />
+                                  <span>
+                                    Respondida em:{" "}
+                                    {new Date(
+                                      evaluation.responseDate
+                                    ).toLocaleDateString("pt-BR")}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
                           </div>
+
+                          <button
+                            onClick={() => handleViewEvaluation(evaluation)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Ver e responder avaliação"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
                         </div>
 
-                        <button
-                          onClick={() => handleViewEvaluation(evaluation)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Ver e responder avaliação"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              evaluation.responseDate
+                                ? "bg-green-100 text-green-800"
+                                : "bg-orange-100 text-orange-800"
+                            }`}
+                          >
+                            {evaluation.responseDate
+                              ? "Respondida"
+                              : "Pendente"}
+                          </span>
+
+                          <span className="text-xs text-gray-500">
+                            {evaluation.questions.length} pergunta
+                            {evaluation.questions.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
                       </div>
+                    ))}
 
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            evaluation.responseDate
-                              ? "bg-green-100 text-green-800"
-                              : "bg-orange-100 text-orange-800"
-                          }`}
-                        >
-                          {evaluation.responseDate ? "Respondida" : "Pendente"}
-                        </span>
-
-                        <span className="text-xs text-gray-500">
-                          {evaluation.questions.length} pergunta
-                          {evaluation.questions.length !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {studentEvaluations.length > 3 && (
-                    <button
-                      onClick={() => setShowAllEvaluations(true)}
-                      className="w-full text-center text-blue-600 hover:text-blue-800 text-sm font-semibold py-2 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      Ver todas as avaliações ({studentEvaluations.length})
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <StarsIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">
-                    Nenhuma avaliação disponível
-                  </p>
-                </div>
-              )}
-            </div>
+                    {studentEvaluations.length > 3 && (
+                      <button
+                        onClick={() => setShowAllEvaluations(true)}
+                        className="w-full text-center text-blue-600 hover:text-blue-800 text-sm font-semibold py-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        Ver todas as avaliações ({studentEvaluations.length})
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <StarsIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">
+                      Nenhuma avaliação disponível
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Modal de Visualização e Resposta da Avaliação */}

@@ -25,6 +25,11 @@ import {
   Phone,
   StarsIcon,
   Save,
+  MapPin,
+  Mail,
+  Edit,
+  EyeOff,
+  Lock,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -40,6 +45,7 @@ export default function StudentDashboard() {
 
   const [classes, setLessons] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   // const [evaluations, setEvaluations] = useState([]);
@@ -207,6 +213,26 @@ export default function StudentDashboard() {
     }
   };
 
+  // Função para buscar dados dos cursos
+  const fetchDataMe = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "https://portal-backend-kvw9.onrender.com/api/auth/me",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response?.data?.user) {
+        setUserData(response?.data?.user);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar meu perfil:", error);
+    }
+  };
+
   // useEffect para chamar as funções de busca de dados
   useEffect(() => {
     const fetchData = async () => {
@@ -215,6 +241,7 @@ export default function StudentDashboard() {
         fetchDataLesson(),
         fetchDataCourse(),
         fetchAvaliacoes(),
+        fetchDataMe(),
       ]);
       setLoading(false); // Finaliza o carregamento
     };
@@ -341,20 +368,143 @@ export default function StudentDashboard() {
 
       toast.error("Erro ao responder avaliação");
     }
-    // // Atualizar no estado
-    // setStudentEvaluations(
-    //   studentEvaluations.map((evaluation) =>
-    //     evaluation.id === selectedEvaluation.id ? updatedEvaluation : evaluation
-    //   )
-    // );
   };
 
-  // // Função para filtrar avaliações (mostrar apenas as 3 mais recentes na sidebar)
-  // const getRecentEvaluations = () => {
-  //   return studentEvaluations
-  //     .sort((a, b) => new Date(b.evaluationDate) - new Date(a.evaluationDate))
-  //     .slice(0, 3);
-  // };
+  const [showModal, setShowModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    cidade: user?.cidade || "",
+    estado: user?.estado || "",
+    telefone: user?.telefone || "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name?.trim()) {
+      newErrors.name = "Nome é obrigatório";
+    }
+
+    if (!formData.email?.trim()) {
+      newErrors.email = "Email é obrigatório";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email inválido";
+    }
+
+    if (!formData.cidade?.trim()) {
+      newErrors.cidade = "Cidade é obrigatória";
+    }
+
+    if (!formData.estado?.trim()) {
+      newErrors.estado = "Estado é obrigatório";
+    }
+
+    if (!formData.telefone?.trim()) {
+      newErrors.telefone = "Telefone é obrigatório";
+    }
+
+    if (formData.password && formData.password.length < 6) {
+      newErrors.password = "Senha deve ter pelo menos 6 caracteres";
+    }
+
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Senhas não coincidem";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const dataToUpdate = { ...formData };
+      if (!dataToUpdate.password) {
+        delete dataToUpdate.password;
+        delete dataToUpdate.confirmPassword;
+      }
+
+      // Simulação da API call
+      const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
+      try {
+        // updateStudent(editingStudent.id, newStudent);
+        const response = await axios.put(
+          `https://portal-backend-kvw9.onrender.com/api/auth/aluno-update/${user.id}`,
+          {
+            ...dataToUpdate,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Dados atualizado.");
+          setShowModal(false);
+          await fetchDataMe()
+          setFormData((prev) => ({
+            ...prev,
+            password: "",
+            confirmPassword: "",
+          }));
+        } else {
+          toast.error("Erro ao atualizar dados.");
+        }
+      } catch (error) {
+        toast.error("Erro ao atualizar dados Aluno.");
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar dados:", error);
+      alert("Erro ao atualizar dados. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setFormData({
+      name: user?.name || "",
+      email: user?.email || "",
+      cidade: user?.cidade || "",
+      estado: user?.estado || "",
+      telefone: user?.telefone || "",
+      password: "",
+      confirmPassword: "",
+    });
+    setErrors({});
+  };
 
   // Get classes for selected course
   const courseClasses = selectedCourse
@@ -678,6 +828,78 @@ export default function StudentDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Aluno Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <User className="h-5 w-5 text-purple-600" />
+                  <span>Meus Dados</span>
+                </h2>
+
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="inline-flex items-center px-1 py-1 bg-[#c1aa78] text-white text-sm font-semibold rounded-lg transition-colors space-x-2"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500">Nome</p>
+                      <p className="font-semibold text-gray-900">
+                        {userData?.name || "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500">Email</p>
+                      <p className="font-semibold text-gray-900">
+                        {userData?.email || "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500">Telefone</p>
+                      <p className="font-semibold text-gray-900">
+                        {userData?.telefone || "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500">Cidade</p>
+                      <p className="font-semibold text-gray-900">
+                        {userData?.cidade || "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500">Estado</p>
+                      <p className="font-semibold text-gray-900">
+                        {userData?.estado || "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             {/* Progress Card */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
@@ -825,6 +1047,237 @@ export default function StudentDashboard() {
               </div>
             )}
           </div>
+          {/* Modal para Alterar Dados */}
+          {showModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Alterar Meus Dados
+                  </h3>
+                  <button
+                    onClick={handleCloseModal}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                  {/* Nome */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nome *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        errors.name ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="Seu nome completo"
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        errors.email ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="seu@email.com"
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Telefone */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Telefone *
+                    </label>
+                    <input
+                      type="tel"
+                      name="telefone"
+                      value={formData.telefone}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        errors.telefone ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="(11) 99999-9999"
+                    />
+                    {errors.telefone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.telefone}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Cidade */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Cidade *
+                    </label>
+                    <input
+                      type="text"
+                      name="cidade"
+                      value={formData.cidade}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        errors.cidade ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="Sua cidade"
+                    />
+                    {errors.cidade && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.cidade}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Estado */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Estado *
+                    </label>
+                    <input
+                      type="text"
+                      name="estado"
+                      value={formData.estado}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        errors.estado ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="Seu estado"
+                    />
+                    {errors.estado && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.estado}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm text-gray-600 mb-4">
+                      <Lock className="h-4 w-4 inline mr-1" />
+                      Deixe em branco para manter a senha atual
+                    </p>
+                  </div>
+
+                  {/* Nova Senha */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nova Senha
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                          errors.password ? "border-red-500" : "border-gray-300"
+                        }`}
+                        placeholder="Nova senha (opcional)"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Confirmar Senha */}
+                  {formData.password && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Confirmar Nova Senha
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                            errors.confirmPassword
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
+                          placeholder="Confirme a nova senha"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Botões */}
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      disabled={isLoading}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex-1 px-4 py-2 bg-[#c1aa78] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? "Salvando..." : "Salvar"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* Modal de Visualização e Resposta da Avaliação */}
           {showEvaluationModal && selectedEvaluation && (

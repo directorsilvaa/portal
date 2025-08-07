@@ -636,6 +636,33 @@ export default function AdminDashboard() {
     return icons[iconName] || "📚";
   };
 
+  const handleAddStudentCourse = async (newStudents) => {
+    const token = localStorage.getItem("token"); // Obtém o token do localStorage
+    try {
+      const response = await axios.post(
+        `https://portal-backend-kvw9.onrender.com/api/auth/add-course-access/${selectedCourse?._id}`,
+        newStudents, // Envie newStudents diretamente, não dentro de um objeto
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+          },
+        }
+      );
+
+      if (response?.data?.success) {
+        // Verifica se a resposta contém sucesso
+        toast.success("Alunos adicionados com sucesso.");
+        await fetchDataCourse(); // Chama a função para atualizar os dados do curso
+        await fetchDataStudents(); // Chama a função para atualizar os dados dos alunos
+      } else {
+        toast.error("Erro ao adicionar alunos.");
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar alunos:", error); // Log do erro para depuração
+      toast.error("Erro ao adicionar alunos.");
+    }
+  };
+
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token"); // Substitua "token" pela chave que você
@@ -816,6 +843,34 @@ export default function AdminDashboard() {
       } else {
         toast.error("Erro ao deletar Aula.");
       }
+    }
+  };
+
+  const removeAccessCourse = async (id: string, cursoID: string) => {
+    try {
+      const token = localStorage.getItem("token"); // Substitua "token" pela chave que você usa
+
+      if (window.confirm("Deseja remover o acesso do curso deste aluno ? ")) {
+        const response = await axios.delete(
+          `https://portal-backend-kvw9.onrender.com/api/auth/remove-access/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Adiciona o token ao cabeçalho
+            },
+            data: { id_curso: cursoID }, // Inclui cursoID no corpo da requisição
+          }
+        );
+
+        if (response?.data) {
+          toast.success("Acesso removido com sucesso.");
+          await fetchDataStudents();
+        } else {
+          toast.error("Erro ao remover acesso do Aluno.");
+        }
+      }
+    } catch (error) {
+      toast.error("Erro ao remover acesso do Aluno.");
+      console.error("Erro:", error); // Adiciona log do erro para depuração
     }
   };
 
@@ -1096,8 +1151,6 @@ export default function AdminDashboard() {
       Array.isArray(s.courseAccess) &&
       s.courseAccess.includes(selectedCourse?._id)
   );
-
-  console.log(courseStudents);
 
   const courseEvaluations = evaluations?.filter(
     (e) => e.cursoID === selectedCourse?._id
@@ -1721,7 +1774,12 @@ export default function AdminDashboard() {
                                 <div className="flex items-center space-x-4">
                                   <div className="flex space-x-2">
                                     <button
-                                      onClick={() => deleteStudent(student.id)}
+                                      onClick={() =>
+                                        removeAccessCourse(
+                                          student._id,
+                                          selectedCourse?._id
+                                        )
+                                      }
                                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                       title="Remover"
                                     >
@@ -3470,7 +3528,7 @@ export default function AdminDashboard() {
         onClose={() => setShowAddStudentsModal(false)}
         allStudents={students}
         courseStudents={courseStudents}
-        onAddStudents={handleAddStudent}
+        onAddStudents={handleAddStudentCourse}
       />
     </div>
   );

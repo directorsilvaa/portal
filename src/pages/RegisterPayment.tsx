@@ -76,17 +76,17 @@ export default function RegisterPage() {
     setError("");
 
     // Validações básicas
-    if (!email || !name || !password || !course) {
+    if (!email || !name || !course) {
       toast.error("Todos os campos são obrigatórios");
       setError("Todos os campos são obrigatórios");
       return;
     }
 
-    if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
-      setError("A senha deve ter pelo menos 6 caracteres");
-      return;
-    }
+    // if (password.length < 6) {
+    //   toast.error("A senha deve ter pelo menos 6 caracteres");
+    //   setError("A senha deve ter pelo menos 6 caracteres");
+    //   return;
+    // }
 
     const success = await register(email, name, password, course, telefone, cidade, estado);
 
@@ -255,7 +255,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <label
                 htmlFor="password"
                 className="block text-sm font-semibold text-gray-700 mb-3"
@@ -285,7 +285,7 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-            </div>
+            </div> */}
 
             <button
               type="submit"
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                   <span>Criando conta...</span>
                 </div>
               ) : (
-                "Criar Conta de Aluno"
+                "Enviar"
               )}
             </button>
           </form>

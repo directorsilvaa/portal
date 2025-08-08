@@ -295,10 +295,10 @@ export default function RegisterPage() {
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Criando conta...</span>
+                  <span>Enviando Inscrição...</span>
                 </div>
               ) : (
-                "Enviar"
+                "Concluir Inscrição"
               )}
             </button>
           </form>
